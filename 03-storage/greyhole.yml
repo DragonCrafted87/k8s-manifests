@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: storage
+  name: greyhole
+spec:
+  ports:
+    - port: 80
+  selector:
+    role: greyhole
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: storage
+  name: greyhole
+  labels:
+    app: greyhole
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: greyhole
+  template:
+    metadata:
+      labels:
+        role: greyhole
+    spec:
+      containers:
+      - name: greyhole
+        image: dragoncrafted87/alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 139
+          name: smb1
+          protocol: TCP
+        - containerPort: 445
+          name: smb2
+          protocol: TCP
+        volumeMounts:
+        - name: greyhole-config
+          mountPath: /mnt/config
+        - name: greyhole-lz
+          mountPath: /mnt/landing_zone
+        - name: greyhole-enclosure1-drive1
+          mountPath: /mnt/enclosure1_drive1
+        - name: greyhole-enclosure1-drive2
+          mountPath: /mnt/enclosure1_drive2
+        - name: greyhole-enclosure1-drive3
+          mountPath: /mnt/enclosure1_drive3
+        - name: greyhole-enclosure1-drive4
+          mountPath: /mnt/enclosure1_drive4
+
+        - name: greyhole-bare-drive1
+          mountPath: /mnt/bare_drive1
+        - name: greyhole-bare-drive2
+          mountPath: /mnt/bare_drive2
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do date; sleep 60; done"]
+      volumes:
+      - name: greyhole-config
+        nfs:
+          server: 10.107.47.55 #nfs-staging-area.storage.svc.cluster.lan
+          path: /config/
+      - name: greyhole-lz
+        nfs:
+          server: 10.107.47.55 #nfs-staging-area.storage.svc.cluster.lan
+          path: /landing_zone/
+      - name: greyhole-enclosure1-drive1
+        nfs:
+          server: 10.107.230.171 #nfs-enclosure1-drive1.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-enclosure1-drive2
+        nfs:
+          server: 10.109.11.11 #nfs-enclosure1-drive2.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-enclosure1-drive3
+        nfs:
+          server: 10.97.231.124 #nfs-enclosure1-drive3.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-enclosure1-drive4
+        nfs:
+          server: 10.103.87.118 #nfs-enclosure1-drive4.storage.svc.cluster.lan
+          path: /
+
+      - name: greyhole-bare-drive1
+        nfs:
+          server: 10.98.133.163 #nfs-bare-drive1.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-bare-drive2
+        nfs:
+          server: 10.105.67.15 #nfs-bare-drive2.storage.svc.cluster.lan
+          path: /

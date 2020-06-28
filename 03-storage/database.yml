@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: storage
+  name: greyhole-mysql
+spec:
+  ports:
+    - port: 3306
+  selector:
+    role: greyhole-database
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: storage
+  name: greyhole-mysql
+  labels:
+    app: greyhole
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: greyhole-database
+  template:
+    metadata:
+      labels:
+        role: greyhole-database
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.6
+        imagePullPolicy: Always
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: greyhole-database-pass
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: greyhole-database
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: greyhole-database
+        nfs:
+          server: 10.107.47.55 #nfs-staging-area.storage.svc.cluster.lan
+          path: /database/
