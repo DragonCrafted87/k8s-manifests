@@ -5,7 +5,12 @@ metadata:
   name: greyhole
 spec:
   ports:
-    - port: 80
+    - name: samba1
+      port: 139
+      protocol: TCP
+    - name: samba2
+      port: 445
+      protocol: TCP
   selector:
     role: greyhole
   type: LoadBalancer
@@ -29,8 +34,30 @@ spec:
     spec:
       containers:
       - name: greyhole
-        image: dragoncrafted87/alpine
+        image: dragoncrafted87/alpine-greyhole:edge
         imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        ports:
+        - name: samba1
+          containerPort: 139
+          protocol: TCP
+        - name: samba2
+          containerPort: 445
+          protocol: TCP
+        - name: samba3
+          containerPort: 138
+          protocol: UDP
+        - name: samba4
+          containerPort: 137
+          protocol: UDP
+        - containerPort: 3306
+          name: mysql
+        resources:
+          requests:
+            ephemeral-storage: "2Gi"
+          limits:
+            ephemeral-storage: "4Gi"
         ports:
         - containerPort: 139
           name: smb1
@@ -52,12 +79,16 @@ spec:
         - name: greyhole-enclosure1-drive4
           mountPath: /mnt/enclosure1_drive4
 
-        - name: greyhole-bare-drive1
-          mountPath: /mnt/bare_drive1
-        - name: greyhole-bare-drive2
-          mountPath: /mnt/bare_drive2
-        command: ["/bin/sh"]
-        args: ["-c", "while true; do date; sleep 60; done"]
+        - name: greyhole-enclosure2-drive1
+          mountPath: /mnt/enclosure2_drive1
+        - name: greyhole-enclosure2-drive2
+          mountPath: /mnt/enclosure2_drive2
+        - name: greyhole-enclosure2-drive3
+          mountPath: /mnt/enclosure2_drive3
+        - name: greyhole-enclosure2-drive4
+          mountPath: /mnt/enclosure2_drive4
+        - name: greyhole-enclosure2-drive5
+          mountPath: /mnt/enclosure2_drive5
       volumes:
       - name: greyhole-config
         nfs:
@@ -84,11 +115,23 @@ spec:
           server: 10.103.87.118 #nfs-enclosure1-drive4.storage.svc.cluster.lan
           path: /
 
-      - name: greyhole-bare-drive1
+      - name: greyhole-enclosure2-drive1
         nfs:
-          server: 10.98.133.163 #nfs-bare-drive1.storage.svc.cluster.lan
+          server: 10.105.148.253 #nfs-enclosure2-drive1.storage.svc.cluster.lan
           path: /
-      - name: greyhole-bare-drive2
+      - name: greyhole-enclosure2-drive2
         nfs:
-          server: 10.105.67.15 #nfs-bare-drive2.storage.svc.cluster.lan
+          server: 10.104.192.120 #nfs-enclosure2-drive2.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-enclosure2-drive3
+        nfs:
+          server: 10.109.75.187 #nfs-enclosure2-drive3.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-enclosure2-drive4
+        nfs:
+          server: 10.100.96.87 #nfs-enclosure2-drive4.storage.svc.cluster.lan
+          path: /
+      - name: greyhole-enclosure2-drive5
+        nfs:
+          server: 10.110.236.189 #nfs-enclosure2-drive5.storage.svc.cluster.lan
           path: /

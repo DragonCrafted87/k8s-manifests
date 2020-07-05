@@ -3,7 +3,7 @@ kind: Service
 apiVersion: v1
 metadata:
   namespace: storage
-  name: nfs-bare-drive1
+  name: nfs-enclosure2-drive1
 spec:
   ports:
     - name: nfs
@@ -13,22 +13,22 @@ spec:
     - name: rpcbind
       port: 111
   selector:
-    role: nfs-bare-drive1
+    role: nfs-enclosure2-drive1
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: storage
-  name: nfs-bare-drive1
+  name: nfs-enclosure2-drive1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      role: nfs-bare-drive1
+      role: nfs-enclosure2-drive1
   template:
     metadata:
       labels:
-        role: nfs-bare-drive1
+        role: nfs-enclosure2-drive1
     spec:
       nodeSelector:
         kubernetes.io/hostname: "dragonmaster"
@@ -55,6 +55,6 @@ spec:
       restartPolicy: Always
       volumes:
       - hostPath:
-          path: /mnt/drive1
+          path: /mnt/enclosure2_drive1
           type: ""
         name: nfs-export
