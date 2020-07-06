@@ -39,32 +39,17 @@ spec:
         securityContext:
           privileged: true
         ports:
-        - name: samba1
-          containerPort: 139
-          protocol: TCP
-        - name: samba2
-          containerPort: 445
-          protocol: TCP
-        - name: samba3
-          containerPort: 138
-          protocol: UDP
-        - name: samba4
-          containerPort: 137
-          protocol: UDP
-        - containerPort: 3306
-          name: mysql
-        resources:
-          requests:
-            ephemeral-storage: "2Gi"
-          limits:
-            ephemeral-storage: "4Gi"
-        ports:
         - containerPort: 139
           name: smb1
           protocol: TCP
         - containerPort: 445
           name: smb2
           protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: 139
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
         volumeMounts:
         - name: greyhole-config
           mountPath: /mnt/config
