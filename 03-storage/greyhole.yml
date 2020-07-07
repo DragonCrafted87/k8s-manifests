@@ -32,6 +32,8 @@ spec:
       labels:
         role: greyhole
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: "amd64node2"
       containers:
       - name: greyhole
         image: dragoncrafted87/alpine-greyhole:edge
@@ -76,47 +78,48 @@ spec:
           mountPath: /mnt/enclosure2_drive5
       volumes:
       - name: greyhole-config
-        nfs:
-          server: 10.107.47.55 #nfs-staging-area.storage.svc.cluster.lan
-          path: /config/
+        hostPath:
+          path: /mnt/staging_area/config/
+          type: ""
       - name: greyhole-lz
-        nfs:
-          server: 10.107.47.55 #nfs-staging-area.storage.svc.cluster.lan
-          path: /landing_zone/
+        hostPath:
+          path: /mnt/staging_area/landing_zone/
+          type: ""
+
       - name: greyhole-enclosure1-drive1
-        nfs:
-          server: 10.107.230.171 #nfs-enclosure1-drive1.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure1_drive1/
+          type: ""
       - name: greyhole-enclosure1-drive2
-        nfs:
-          server: 10.109.11.11 #nfs-enclosure1-drive2.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure1_drive2/
+          type: ""
       - name: greyhole-enclosure1-drive3
-        nfs:
-          server: 10.97.231.124 #nfs-enclosure1-drive3.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure1_drive3/
+          type: ""
       - name: greyhole-enclosure1-drive4
-        nfs:
-          server: 10.103.87.118 #nfs-enclosure1-drive4.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure1_drive4/
+          type: ""
 
       - name: greyhole-enclosure2-drive1
-        nfs:
-          server: 10.105.148.253 #nfs-enclosure2-drive1.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure2_drive1/
+          type: ""
       - name: greyhole-enclosure2-drive2
-        nfs:
-          server: 10.104.192.120 #nfs-enclosure2-drive2.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure2_drive2/
+          type: ""
       - name: greyhole-enclosure2-drive3
-        nfs:
-          server: 10.109.75.187 #nfs-enclosure2-drive3.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure2_drive3/
+          type: ""
       - name: greyhole-enclosure2-drive4
-        nfs:
-          server: 10.100.96.87 #nfs-enclosure2-drive4.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure2_drive4/
+          type: ""
       - name: greyhole-enclosure2-drive5
-        nfs:
-          server: 10.110.236.189 #nfs-enclosure2-drive5.storage.svc.cluster.lan
-          path: /
+        hostPath:
+          path: /mnt/enclosure2_drive5/
+          type: ""
