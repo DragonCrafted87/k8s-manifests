@@ -64,7 +64,10 @@ spec:
         role: pi-hole
     spec:
       containers:
-      - env:
+      - name: pihole
+        image: pihole/pihole:latest
+        imagePullPolicy: Always
+        env:
         - name: WEB_PORT
           value: "80"
         - name: WEBPASSWORD
@@ -78,19 +81,6 @@ spec:
           value: 1.1.1.1
         - name: DNS2
           value: 1.0.0.1
-        image: pihole/pihole:v5.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 10
-          httpGet:
-            path: /admin.index.php
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: pihole
         ports:
         - containerPort: 80
           name: http
@@ -109,6 +99,16 @@ spec:
           protocol: UDP
         readinessProbe:
           failureThreshold: 3
+          httpGet:
+            path: /admin.index.php
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        livenessProbe:
+          failureThreshold: 10
           httpGet:
             path: /admin.index.php
             port: http
