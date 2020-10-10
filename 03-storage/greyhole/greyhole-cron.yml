@@ -1,0 +1,133 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-list-exec
+  namespace: storage
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods/exec"]
+    verbs: ["create", "get"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: greyhole-cron
+  namespace: storage
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: greyhole-cron-pod-list-exec
+  namespace: storage
+subjects:
+- kind: ServiceAccount
+  name: greyhole-cron
+  namespace: storage
+roleRef:
+  kind: Role
+  name: pod-list-exec
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: greyhole-cron-spool
+  namespace: storage
+  labels:
+    app: greyhole-cron
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: greyhole-cron
+            image: dragoncrafted87/alpine-greyhole-cron:latest
+            imagePullPolicy: Always
+          serviceAccountName: greyhole-cron
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: greyhole-cron-daily-fsck
+  namespace: storage
+  labels:
+    app: greyhole-cron
+spec:
+  schedule: "0 1 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: greyhole-cron
+            image: dragoncrafted87/alpine-greyhole-cron:latest
+            imagePullPolicy: Always
+            env:
+            - name: COMMAND_SWITCH
+              value: daily
+          serviceAccountName: greyhole-cron
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: greyhole-cron-weekly-fsck
+  namespace: storage
+  labels:
+    app: greyhole-cron
+spec:
+  schedule: "0 2 * * 1"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: greyhole-cron
+            image: dragoncrafted87/alpine-greyhole-cron:latest
+            imagePullPolicy: Always
+            env:
+            - name: COMMAND_SWITCH
+              value: weekly
+          serviceAccountName: greyhole-cron
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: greyhole-cron-monthly-fsck
+  namespace: storage
+  labels:
+    app: greyhole-cron
+spec:
+  schedule: "0 0 1 * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: greyhole-cron
+            image: dragoncrafted87/alpine-greyhole-cron:latest
+            imagePullPolicy: Always
+            env:
+            - name: COMMAND_SWITCH
+              value: monthly
+          serviceAccountName: greyhole-cron
+          restartPolicy: OnFailure

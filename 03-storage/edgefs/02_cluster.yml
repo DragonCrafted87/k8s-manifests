@@ -1,0 +1,172 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rook-edgefs
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rook-edgefs-cluster
+  namespace: rook-edgefs
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-edgefs-cluster
+  namespace: rook-edgefs
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "endpoints"]
+  verbs: [ "get", "list", "watch", "create", "update", "delete" ]
+- apiGroups: ["edgefs.rook.io"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["extensions"]
+  resources: ["deployments/scale"]
+  verbs: [ "get", "update" ]
+---
+# Allow the operator to create resources in this cluster's namespace
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-edgefs-cluster-mgmt
+  namespace: rook-edgefs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-edgefs-cluster-mgmt
+subjects:
+- kind: ServiceAccount
+  name: rook-edgefs-system
+  namespace: rook-edgefs-system
+---
+# Allow the pods in this namespace to work with configmaps
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rook-edgefs-cluster
+  namespace: rook-edgefs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rook-edgefs-cluster
+subjects:
+- kind: ServiceAccount
+  name: rook-edgefs-cluster
+  namespace: rook-edgefs
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: privileged
+spec:
+  fsGroup:
+    rule: RunAsAny
+  privileged: true
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - '*'
+  allowedCapabilities:
+  - '*'
+  hostPID: true
+  hostIPC: true
+  hostNetwork: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: privileged-psp-user
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - podsecuritypolicies
+  resourceNames:
+  - privileged
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-edgefs-system-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: privileged-psp-user
+subjects:
+- kind: ServiceAccount
+  name: rook-edgefs-system
+  namespace: rook-edgefs-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rook-edgefs-cluster-psp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: privileged-psp-user
+subjects:
+- kind: ServiceAccount
+  name: rook-edgefs-cluster
+  namespace: rook-edgefs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rook-edgefs-mgr
+    rook_cluster: rook-edgefs
+  name: rook-edgefs-ui-external
+  namespace: rook-edgefs
+spec:
+  ports:
+  - name: http-ui
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  - name: https-ui
+    port: 443
+    protocol: TCP
+    targetPort: 3443
+  selector:
+    app: rook-edgefs-mgr
+    rook_cluster: rook-edgefs
+  type: LoadBalancer
+---
+apiVersion: edgefs.rook.io/v1
+kind: Cluster
+metadata:
+  name: rook-edgefs
+  namespace: rook-edgefs
+spec:
+  edgefsImageName: edgefs/edgefs:latest
+  serviceAccount: rook-edgefs-cluster
+  dataDirHostPath: /var/lib/edgefs
+  sysRepCount: 1
+  failureDomain: "device"
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+    - name: "amd64node2"
+      devices:
+#      - fullpath: "/dev/disk/by-id/usb-JMicron_Generic_DISK00_0123456789ABCDEF-0:0"
+#      - fullpath: "/dev/disk/by-id/usb-JMicron_Generic_DISK01_0123456789ABCDEF-0:1"
+#      - fullpath: "/dev/disk/by-id/usb-JMicron_Generic_DISK02_0123456789ABCDEF-0:2"
+#      - fullpath: "/dev/disk/by-id/usb-JMicron_Generic_DISK03_0123456789ABCDEF-0:3"
+#      - fullpath: "/dev/disk/by-id/usb-JMicron_Generic_DISK04_0123456789ABCDEF-0:4"
+      - name: "sdb"
+      - name: "sdc"
+      - name: "sdd"
+      - name: "sde"
+      - name: "sdf"

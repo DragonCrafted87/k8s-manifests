@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-ceph-mgr-dashboard
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+spec:
+  ports:
+  - name: dashboard2
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+  sessionAffinity: None
+  type: LoadBalancer
+---
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: ceph/ceph:v15
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  skipUpgradeChecks: false
+  continueUpgradeAfterChecksEvenIfNotHealthy: false
+  mon:
+    count: 3
+    allowMultiplePerNode: true
+  mgr:
+    modules:
+    - name: pg_autoscaler
+      enabled: true
+  dashboard:
+    enabled: true
+    ssl: true
+  monitoring:
+    enabled: false
+    rulesNamespace: rook-ceph
+  network:
+  rbdMirroring:
+    workers: 0
+  crashCollector:
+    disable: false
+  cleanupPolicy:
+    confirmation: ""
+  removeOSDsIfOutAndSafeToRemove: false
+  storage: # cluster level storage configuration and selection
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+    - name: "amd64node2"
+#      devices:
+#      - name: "/dev/disk/by-id/usb-JMicron_Generic_DISK00_0123456789ABCDEF-0:0"
+#      - name: "/dev/disk/by-id/usb-JMicron_Generic_DISK01_0123456789ABCDEF-0:1"
+#      - name: "/dev/disk/by-id/usb-JMicron_Generic_DISK02_0123456789ABCDEF-0:2"
+#      - name: "/dev/disk/by-id/usb-JMicron_Generic_DISK03_0123456789ABCDEF-0:3"
+#      - name: "/dev/disk/by-id/usb-JMicron_Generic_DISK04_0123456789ABCDEF-0:4"
+#      deviceFilter: ^dm
+      deviceFilter: ^sd[b-f]
+  disruptionManagement:
+    managePodBudgets: false
+    osdMaintenanceTimeout: 30
+    manageMachineDisruptionBudgets: false
+    machineDisruptionBudgetNamespace: openshift-machine-api
+---
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: ceph-file-system
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: 3
+  dataPools:
+    - erasureCoded:
+        dataChunks: 2
+        codingChunks: 1
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
+---
+apiVersion: ceph.rook.io/v1
+kind: CephNFS
+metadata:
+  name: ceph-nfs
+  namespace: rook-ceph
+spec:
+  rados:
+    # RADOS pool where NFS client recovery data is stored.
+    pool: ceph-file-system-data0
+    # RADOS namespace where NFS client recovery data is stored in the pool.
+    namespace: nfs-ns
+  server:
+    active: 2

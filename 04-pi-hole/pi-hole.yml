@@ -103,7 +103,7 @@ spec:
             path: /admin.index.php
             port: http
             scheme: HTTP
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 5
@@ -113,7 +113,7 @@ spec:
             path: /admin.index.php
             port: http
             scheme: HTTP
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 5
@@ -124,18 +124,11 @@ spec:
           mountPath: "/etc/dnsmasq.d"
       volumes:
       - name: config
-        flexVolume:
-          driver: "fstab/cifs"
-          secretRef:
-            name: cifs-secret
-          options:
-            networkPath: "//192.168.8.2/Persistent/Pi-Hole/config"
-            mountOptions: "dir_mode=0777,file_mode=0777,noperm"
+        nfs:
+          server: 10.98.210.174
+          path: /Pi-Hole/config
+
       - name: dnsmasq
-        flexVolume:
-          driver: "fstab/cifs"
-          secretRef:
-            name: cifs-secret
-          options:
-            networkPath: "//192.168.8.2/Persistent/Pi-Hole/dnsmasq"
-            mountOptions: "dir_mode=0777,file_mode=0777,noperm"
+        nfs:
+          server: 10.98.210.174
+          path: /Pi-Hole/dnsmasq

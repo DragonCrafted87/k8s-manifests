@@ -50,7 +50,7 @@ spec:
           protocol: TCP
         livenessProbe:
           tcpSocket:
-            port: 139
+            port: 445
           initialDelaySeconds: 60
           timeoutSeconds: 5
         volumeMounts:
@@ -80,11 +80,11 @@ spec:
       volumes:
       - name: greyhole-config
         hostPath:
-          path: /mnt/staging_area/config/
+          path: /mnt/enclosure1_drive8/greyhole_staging_area/config/
           type: ""
       - name: greyhole-lz
         hostPath:
-          path: /mnt/staging_area/landing_zone/
+          path: /mnt/enclosure1_drive8/greyhole_staging_area/landing_zone/
           type: ""
 
       - name: greyhole-enclosure1-drive1

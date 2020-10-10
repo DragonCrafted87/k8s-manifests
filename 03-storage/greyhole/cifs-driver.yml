@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: cifs-flexvol-installer
-  namespace: kube-system
+  namespace: storage
 spec:
   selector:
     matchLabels:
