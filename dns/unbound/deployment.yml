@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: dns
+  name: unbound
+  labels:
+    app: unbound
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      role: unbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 2
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        role: unbound
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - unbound
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: unbound
+        image: timwebster9/unbound:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: 53
+          name: dns-udp
+          protocol: UDP
