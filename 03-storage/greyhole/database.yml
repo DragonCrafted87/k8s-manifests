@@ -27,8 +27,6 @@ spec:
       labels:
         role: greyhole-database
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: "amd64node2"
       containers:
       - name: mysql
         image: dragoncrafted87/greyhole-database:edge
@@ -53,6 +51,6 @@ spec:
           mountPath: /var/lib/mysql
       volumes:
       - name: greyhole-database
-        hostPath:
-          path: /mnt/staging_area/database/
-          type: ""
+        nfs:
+          server: 10.152.183.171
+          path: /greyhole/database

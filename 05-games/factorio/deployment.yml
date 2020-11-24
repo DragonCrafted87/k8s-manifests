@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: games
+  name: factorio
+  labels:
+    app: factorio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: factorio
+  template:
+    metadata:
+      labels:
+        role: factorio
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: "amd64node3.lan"
+      containers:
+      - name: factorio
+        image: factoriotools/factorio:stable
+        imagePullPolicy: Always
+        ports:
+        - name: factorio
+          containerPort: 34197
+          protocol: UDP
+        - name: rcon
+          containerPort: 27015
+          protocol: TCP
+        volumeMounts:
+        - name: data
+          mountPath: /factorio
+      volumes:
+      - name: data
+        nfs:
+          server: 10.152.183.171
+          path: /factorio

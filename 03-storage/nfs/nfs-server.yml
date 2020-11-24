@@ -16,7 +16,7 @@ spec:
         role: nfs-server
     spec:
       nodeSelector:
-        kubernetes.io/hostname: "amd64node2"
+        kubernetes.io/hostname: "amd64node2.lan"
       containers:
       - name: nfs-server
         image: gcr.io/google_containers/volume-nfs:0.8
@@ -35,5 +35,5 @@ spec:
       volumes:
         - name: nfs-export
           hostPath:
-            path: /mnt/staging_area/landing_zone/persistent
+            path: /mnt/cluster_storage
             type: ""

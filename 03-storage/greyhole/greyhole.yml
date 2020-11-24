@@ -34,7 +34,7 @@ spec:
         role: greyhole
     spec:
       nodeSelector:
-        kubernetes.io/hostname: "amd64node2"
+        kubernetes.io/hostname: "amd64node4.lan"
       containers:
       - name: greyhole
         image: dragoncrafted87/alpine-greyhole:edge
@@ -67,16 +67,16 @@ spec:
         - name: greyhole-enclosure1-drive4
           mountPath: /mnt/enclosure1_drive4
 
-        - name: greyhole-enclosure2-drive1
-          mountPath: /mnt/enclosure2_drive1
-        - name: greyhole-enclosure2-drive2
-          mountPath: /mnt/enclosure2_drive2
-        - name: greyhole-enclosure2-drive3
-          mountPath: /mnt/enclosure2_drive3
-        - name: greyhole-enclosure2-drive4
-          mountPath: /mnt/enclosure2_drive4
-        - name: greyhole-enclosure2-drive5
-          mountPath: /mnt/enclosure2_drive5
+#        - name: greyhole-enclosure2-drive1
+#          mountPath: /mnt/enclosure2_drive1
+#        - name: greyhole-enclosure2-drive2
+#          mountPath: /mnt/enclosure2_drive2
+#        - name: greyhole-enclosure2-drive3
+#          mountPath: /mnt/enclosure2_drive3
+#        - name: greyhole-enclosure2-drive4
+#          mountPath: /mnt/enclosure2_drive4
+#        - name: greyhole-enclosure2-drive5
+#          mountPath: /mnt/enclosure2_drive5
       volumes:
       - name: greyhole-config
         hostPath:
@@ -104,23 +104,23 @@ spec:
           path: /mnt/enclosure1_drive4/
           type: ""
 
-      - name: greyhole-enclosure2-drive1
-        hostPath:
-          path: /mnt/enclosure2_drive1/
-          type: ""
-      - name: greyhole-enclosure2-drive2
-        hostPath:
-          path: /mnt/enclosure2_drive2/
-          type: ""
-      - name: greyhole-enclosure2-drive3
-        hostPath:
-          path: /mnt/enclosure2_drive3/
-          type: ""
-      - name: greyhole-enclosure2-drive4
-        hostPath:
-          path: /mnt/enclosure2_drive4/
-          type: ""
-      - name: greyhole-enclosure2-drive5
-        hostPath:
-          path: /mnt/enclosure2_drive5/
-          type: ""
+#      - name: greyhole-enclosure2-drive1
+#        hostPath:
+#          path: /mnt/enclosure2_drive1/
+#          type: ""
+#      - name: greyhole-enclosure2-drive2
+#        hostPath:
+#          path: /mnt/enclosure2_drive2/
+#          type: ""
+#      - name: greyhole-enclosure2-drive3
+#        hostPath:
+#          path: /mnt/enclosure2_drive3/
+#          type: ""
+#      - name: greyhole-enclosure2-drive4
+#        hostPath:
+#          path: /mnt/enclosure2_drive4/
+#          type: ""
+#      - name: greyhole-enclosure2-drive5
+#        hostPath:
+#          path: /mnt/enclosure2_drive5/
+#          type: ""

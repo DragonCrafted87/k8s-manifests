@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: minecraft
+  namespace: games
   name: minecraft
   labels:
     app: minecraft
@@ -16,7 +16,7 @@ spec:
         role: minecraft
     spec:
       nodeSelector:
-        kubernetes.io/hostname: "amd64node3"
+        kubernetes.io/hostname: "amd64node3.lan"
       containers:
       - name: minecraft
         image: dragoncrafted87/alpine-minecraft:edge
@@ -29,10 +29,10 @@ spec:
           containerPort: 25575
           protocol: TCP
         volumeMounts:
-        - name: data
+        - name: vanillaplusplus
           mountPath: /mnt/minecraft
       volumes:
-      - name: data
+      - name: vanillaplusplus
         nfs:
-          server: 10.98.210.174
-          path: /Minecraft-Fabric
+          server: 10.152.183.171
+          path: /minecraft-vanillaplusplus
