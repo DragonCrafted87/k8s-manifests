@@ -33,8 +33,8 @@ spec:
             topologyKey: "kubernetes.io/hostname"
       containers:
       - name: unbound
-        image: timwebster9/unbound:1.0.0
-        imagePullPolicy: IfNotPresent
+        image: dragoncrafted87/alpine-unbound:edge
+        imagePullPolicy: Always
         ports:
         - containerPort: 53
           name: dns-tcp
@@ -42,3 +42,21 @@ spec:
         - containerPort: 53
           name: dns-udp
           protocol: UDP
+        livenessProbe:
+          exec:
+            command: ['drill', '@127.0.0.1', 'cnn.com']
+          timeoutSeconds: 5
+          initialDelaySeconds: 5
+          periodSeconds: 60
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/unbound/unbound.conf
+          subPath: unbound.conf
+      restartPolicy: Always
+      volumes:
+      - name: conf
+        configMap:
+          name: unbound.conf
+          items:
+            - key: unbound.conf
+              path: unbound.conf
