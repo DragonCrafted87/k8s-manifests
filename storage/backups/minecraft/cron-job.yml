@@ -1,0 +1,40 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: minecraft-backup-daily
+  namespace: storage
+  labels:
+    app: minecraft-backup-cron
+spec:
+  schedule: "30 0 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: minecraft-backup-cron
+            image: dragoncrafted87/alpine-backup-cron:edge
+            imagePullPolicy: Always
+            volumeMounts:
+            - name: vanillaplusplus
+              mountPath: /mnt/minecraft
+            - name: backup
+              mountPath: /mnt/backups
+          restartPolicy: OnFailure
+          volumes:
+          - name: vanillaplusplus
+            nfs:
+              server: 10.152.183.171
+              path: /minecraft-vanillaplusplus
+          - name: backup
+            flexVolume:
+              driver: "fstab/cifs"
+              secretRef:
+                name: cifs-secret
+              options:
+                networkPath: "//192.168.8.2/Backups/K8s/"
+                mountOptions: "dir_mode=0755,file_mode=0644,noperm"
