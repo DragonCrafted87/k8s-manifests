@@ -31,8 +31,17 @@ spec:
         volumeMounts:
         - name: vanillaplusplus
           mountPath: /mnt/minecraft
+        - name: local-volume
+          mountPath: /mnt/ramdisk
+        - name: ram-volume
+          mountPath: /mnt/ramdisk/world
       volumes:
       - name: vanillaplusplus
         nfs:
           server: 10.152.183.171
           path: /minecraft-vanillaplusplus
+      - name: local-volume
+        emptyDir: {}
+      - name: ram-volume
+        emptyDir:
+          medium: Memory
