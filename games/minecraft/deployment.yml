@@ -17,7 +17,7 @@ spec:
         role: minecraft
     spec:
       nodeSelector:
-        kubernetes.io/hostname: "amd64node3.lan"
+        kubernetes.io/hostname: "amd64node5.lan"
       containers:
       - name: minecraft
         image: dragoncrafted87/alpine-minecraft:edge

@@ -61,3 +61,5 @@ data:
     192.168.0.51 amd64node2.lan
     192.168.0.52 amd64node3.lan
     192.168.0.53 amd64node4.lan
+    192.168.0.54 amd64node5.lan
+    192.168.0.60 arm64node1.lan
