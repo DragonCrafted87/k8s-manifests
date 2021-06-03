@@ -1,0 +1,22 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: home-assistant-tcp
+  namespace: iot
+  annotations:
+    metallb.universe.tf/allow-shared-ip: home-assistant
+spec:
+  selector:
+    app: home-assistant
+  ports:
+  - protocol: TCP
+    port: 80
+    name: ha-web
+    targetPort: 8123
+  - protocol: TCP
+    port: 8123
+    name: ha-base
+    targetPort: 8123
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.20

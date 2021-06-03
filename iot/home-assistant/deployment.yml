@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: iot
+  name: home-assistant
+  labels:
+    app: home-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: home-assistant
+  template:
+    metadata:
+      labels:
+        role: home-assistant
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: "amd64node2.lan"
+      containers:
+      - name: home-assistant
+        image: homeassistant/home-assistant:stable
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8123
+          name: ha-tcp
+          protocol: TCP
+        volumeMounts:
+        - name: home-assistant
+          mountPath: /config
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: ha-tcp
+            scheme: HTTP
+          initialDelaySeconds: 60
+          failureThreshold: 5
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: ha-tcp
+            scheme: HTTP
+          initialDelaySeconds: 60
+          failureThreshold: 5
+          timeoutSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /
+            port: ha-tcp
+            scheme: HTTP
+          failureThreshold: 30
+          periodSeconds: 10
+
+      restartPolicy: Always
+      volumes:
+      - name: home-assistant
+        nfs:
+          server: 10.152.183.171
+          path: /home-assistant
