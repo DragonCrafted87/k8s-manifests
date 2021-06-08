@@ -22,3 +22,6 @@ microk8s add-node
 
 # other nodes
 microk8s join ***************************************************
+
+
+kubectl apply -f . --recursive
