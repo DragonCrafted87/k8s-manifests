@@ -41,7 +41,7 @@ spec:
       volumes:
       - name: greyhole-database
         nfs:
-          server: 10.152.183.171
+          server: nfs-server.storage
           path: /greyhole/database
 ---
 apiVersion: apps/v1
