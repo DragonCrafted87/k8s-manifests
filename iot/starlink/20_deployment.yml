@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    namespace: iot
+    name: starlink
+    labels:
+        app.kubernetes.io/name: starlink
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            role: starlink
+    template:
+        metadata:
+            labels:
+                role: starlink
+        spec:
+            containers:
+            -   name: starlink
+                image: neurocis/starlink-grpc-tools
+                imagePullPolicy: Always
+                env:
+                    -   name: TZ
+                        value: America/Chicago
+                command: ["python"]
+                args: ["dish_grpc_mqtt.py", "-n 192.168.8.21", "-p 1883", "-v", "status", "obstruction_detail", "alert_detail"]
+            restartPolicy: Always

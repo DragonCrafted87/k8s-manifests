@@ -1,0 +1,14 @@
+#---
+#kind: Service
+#apiVersion: v1
+#metadata:
+#  name: influxdb
+#  namespace: iot
+#spec:
+#  selector:
+#    role: influxdb
+#  ports:
+#    - name: influxdb
+#    port: 8086
+#    targetPort: 8086
+#  type: ClusterIP

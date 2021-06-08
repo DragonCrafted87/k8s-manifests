@@ -1,0 +1,36 @@
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  namespace: iot
+#  name: influxdb
+#  labels:
+#    app.kubernetes.io/name: influxdb
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      role: influxdb
+#  template:
+#    metadata:
+#      labels:
+#        role: influxdb
+#    spec:
+#      containers:
+#      - name: influxdb
+#        image: influxdb:2.0.6
+#        env:
+#            - name: TZ
+#              value: America/Chicago
+#        ports:
+#          - containerPort: 8086
+#            name: influxdb
+#        volumeMounts:
+#          - mountPath: /var/lib/influxdb2
+#            name: data
+#      restartPolicy: Always
+#      volumes:
+#      - name: data
+#        nfs:
+#          server: 10.152.183.171
+#          path: /influxdb

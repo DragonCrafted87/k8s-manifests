@@ -21,7 +21,7 @@ spec:
             imagePullPolicy: Always
             volumeMounts:
             - name: vanillaplusplus
-              mountPath: /mnt/minecraft
+              mountPath: /mnt/source
             - name: backup
               mountPath: /mnt/backups
           restartPolicy: OnFailure
