@@ -8,7 +8,7 @@ spec:
     selector:
         role: home-assistant
     ports:
-    - protocol: TCP
+    -   protocol: TCP
         port: 80
         name: ha-web
         targetPort: 8123
