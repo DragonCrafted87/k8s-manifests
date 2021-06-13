@@ -23,6 +23,6 @@ spec:
                 env:
                     -   name: TZ
                         value: America/Chicago
-                command: ["python"]
-                args: ["dish_grpc_mqtt.py", "-n 192.168.8.21", "-p 1883", "-v", "status", "obstruction_detail", "alert_detail"]
+                command: ["/bin/sh"]
+                args: ["-c", "python dish_grpc_mqtt.py -n 10.152.183.226 -p 1883 -v -t 5 status obstruction_detail alert_detail"]
             restartPolicy: Always
