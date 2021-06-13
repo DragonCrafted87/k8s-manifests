@@ -49,7 +49,7 @@
 #      volumes:
 #      - name: data
 #        nfs:
-#          server: nfs-server.storage
+#          server: 10.152.183.213
 #          path: /portainer
 #---
 #apiVersion: apps/v1

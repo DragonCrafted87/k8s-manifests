@@ -28,7 +28,7 @@ spec:
           volumes:
           - name: vanillaplusplus
             nfs:
-              server: nfs-server.storage
+              server: 10.152.183.213
               path: /minecraft-vanillaplusplus
           - name: backup
             flexVolume:
