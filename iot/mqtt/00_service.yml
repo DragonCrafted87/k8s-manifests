@@ -1,9 +1,8 @@
----
 kind: Service
 apiVersion: v1
 metadata:
-  name: mqtt
-  namespace: iot
+    name: mqtt
+    namespace: iot
 spec:
     selector:
         role: mqtt

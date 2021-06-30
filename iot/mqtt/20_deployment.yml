@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,20 +19,20 @@ spec:
             -   name: mqtt
                 image: eclipse-mosquitto:latest
                 env:
-                    -   name: TZ
-                        value: America/Chicago
+                -   name: TZ
+                    value: America/Chicago
                 ports:
-                    -   containerPort: 1883
-                        name: mqtt
+                -   containerPort: 1883
+                    name: mqtt
                 volumeMounts:
-                    -   name: conf
-                        mountPath: /mosquitto/config/mosquitto.conf
-                        subPath: mosquitto.conf
+                -   name: conf
+                    mountPath: /mosquitto/config/mosquitto.conf
+                    subPath: mosquitto.conf
             restartPolicy: Always
             volumes:
             -   name: conf
                 configMap:
                     name: mosquitto.conf
                     items:
-                        -   key: mosquitto.conf
-                            path: mosquitto.conf
+                    -   key: mosquitto.conf
+                        path: mosquitto.conf

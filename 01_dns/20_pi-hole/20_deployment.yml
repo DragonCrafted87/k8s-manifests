@@ -1,126 +1,114 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: dns
-  name: pi-hole
-  labels:
-    app: pi-hole
+    namespace: dns
+    name: pi-hole
+    labels:
+        app: pi-hole
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      role: pi-hole
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 2
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        role: pi-hole
-    spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: role
-                operator: In
-                values:
-                - pi-hole
-            topologyKey: "kubernetes.io/hostname"
-      containers:
-      - name: pihole
-        image: pihole/pihole:latest
-        imagePullPolicy: Always
-        env:
-        - name: WEB_PORT
-          value: "80"
-        - name: WEBPASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: web-password
-        - name: TZ
-          value: America/Chicago
-        - name: DNS1
-          value: 192.168.8.10
-        - name: DNS2
-          value: 192.168.8.10
-        - name: DNSMASQ_LISTENING
-          value: all
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        - containerPort: 53
-          name: dns-tcp
-          protocol: TCP
-        - containerPort: 53
-          name: dns-udp
-          protocol: UDP
-        - containerPort: 443
-          name: https
-          protocol: TCP
-        - containerPort: 67
-          name: client-udp
-          protocol: UDP
-        resources:
-          requests:
-            cpu: "20m"
-            memory: "512Mi"
-          limits:
-            cpu: "250m"
-            memory: "896Mi"
-#        readinessProbe:
-#          exec:
-#            command: ['dig', '@127.0.0.1', 'cnn.com']
-#          timeoutSeconds: 20
-#          initialDelaySeconds: 5
-#          periodSeconds: 60
-#        livenessProbe:
-#          tcpSocket:
-#            port: dns-tcp
-#          initialDelaySeconds: 15
-#          periodSeconds: 30
-        volumeMounts:
-        - name: ftlconf
-          mountPath: /etc/pihole/pihole-FTL.conf
-          subPath: pihole-FTL.conf
-        - name: whitelist
-          mountPath: /etc/pihole/whitelist.txt
-          subPath: whitelist.txt
-        - name: adlists
-          mountPath: /etc/pihole/adlists.list
-          subPath: adlists.list
-        - name: custom
-          mountPath: /etc/pihole/custom.list
-          subPath: custom.list
-      restartPolicy: Always
-      volumes:
-      - name: ftlconf
-        configMap:
-          name: pihole-ftl.conf
-          items:
-            - key: pihole-FTL.conf
-              path: pihole-FTL.conf
-      - name: whitelist
-        configMap:
-          name: whitelist.txt
-          items:
-            - key: whitelist.txt
-              path: whitelist.txt
-      - name: adlists
-        configMap:
-          name: adlists.list
-          items:
-            - key: adlists.list
-              path: adlists.list
-      - name: custom
-        configMap:
-          name: custom.list
-          items:
-            - key: custom.list
-              path: custom.list
+    replicas: 3
+    selector:
+        matchLabels:
+            role: pi-hole
+    strategy:
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 2
+        type: RollingUpdate
+    template:
+        metadata:
+            labels:
+                role: pi-hole
+        spec:
+            affinity:
+                podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                    -   labelSelector:
+                            matchExpressions:
+                            -   key: role
+                                operator: In
+                                values:
+                                -   pi-hole
+                        topologyKey: kubernetes.io/hostname
+            containers:
+            -   name: pihole
+                image: pihole/pihole:latest
+                imagePullPolicy: Always
+                env:
+                -   name: WEB_PORT
+                    value: '80'
+                -   name: WEBPASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            key: password
+                            name: web-password
+                -   name: TZ
+                    value: America/Chicago
+                -   name: DNS1
+                    value: 192.168.8.10
+                -   name: DNS2
+                    value: 192.168.8.10
+                -   name: DNSMASQ_LISTENING
+                    value: all
+                ports:
+                -   containerPort: 80
+                    name: http
+                    protocol: TCP
+                -   containerPort: 53
+                    name: dns-tcp
+                    protocol: TCP
+                -   containerPort: 53
+                    name: dns-udp
+                    protocol: UDP
+                -   containerPort: 443
+                    name: https
+                    protocol: TCP
+                -   containerPort: 67
+                    name: client-udp
+                    protocol: UDP
+                resources:
+                    requests:
+                        cpu: 20m
+                        memory: 512Mi
+                    limits:
+                        cpu: 250m
+                        memory: 896Mi
+                volumeMounts:
+                -   name: ftlconf
+                    mountPath: /etc/pihole/pihole-FTL.conf
+                    subPath: pihole-FTL.conf
+                -   name: whitelist
+                    mountPath: /etc/pihole/whitelist.txt
+                    subPath: whitelist.txt
+                -   name: adlists
+                    mountPath: /etc/pihole/adlists.list
+                    subPath: adlists.list
+                -   name: custom
+                    mountPath: /etc/pihole/custom.list
+                    subPath: custom.list
+            restartPolicy: Always
+            volumes:
+            -   name: ftlconf
+                configMap:
+                    name: pihole-ftl.conf
+                    items:
+                    -   key: pihole-FTL.conf
+                        path: pihole-FTL.conf
+            -   name: whitelist
+                configMap:
+                    name: whitelist.txt
+                    items:
+                    -   key: whitelist.txt
+                        path: whitelist.txt
+            -   name: adlists
+                configMap:
+                    name: adlists.list
+                    items:
+                    -   key: adlists.list
+                        path: adlists.list
+            -   name: custom
+                configMap:
+                    name: custom.list
+                    items:
+                    -   key: custom.list
+                        path: custom.list

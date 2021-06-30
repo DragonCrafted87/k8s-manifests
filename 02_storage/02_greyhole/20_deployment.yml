@@ -2,153 +2,120 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: storage
-  name: greyhole-database
-  labels:
-    app: greyhole
+    namespace: storage
+    name: greyhole-database
+    labels:
+        app: greyhole
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      role: greyhole-database
-  template:
-    metadata:
-      labels:
-        role: greyhole-database
-    spec:
-      containers:
-      - name: mysql
-        image: dragoncrafted87/greyhole-database:edge
-        imagePullPolicy: Always
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: greyhole-database-pass
-              key: password
-        - name: MYSQL_DATABASE
-          value: greyhole
-        - name: MYSQL_USER
-          value: greyhole_user
-        - name: MYSQL_PASSWORD
-          value: '89y63jdwe'
-        ports:
-        - containerPort: 3306
-          name: mysql
-        volumeMounts:
-        - name: greyhole-database
-          mountPath: /var/lib/mysql
-      volumes:
-      - name: greyhole-database
-        nfs:
-          server: 10.152.183.213
-          path: /greyhole/database
+    replicas: 1
+    selector:
+        matchLabels:
+            role: greyhole-database
+    template:
+        metadata:
+            labels:
+                role: greyhole-database
+        spec:
+            containers:
+            -   name: mysql
+                image: dragoncrafted87/greyhole-database:edge
+                imagePullPolicy: Always
+                env:
+                -   name: MYSQL_ROOT_PASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            name: greyhole-database-pass
+                            key: password
+                -   name: MYSQL_DATABASE
+                    value: greyhole
+                -   name: MYSQL_USER
+                    value: greyhole_user
+                -   name: MYSQL_PASSWORD
+                    value: 89y63jdwe
+                ports:
+                -   containerPort: 3306
+                    name: mysql
+                volumeMounts:
+                -   name: greyhole-database
+                    mountPath: /var/lib/mysql
+            volumes:
+            -   name: greyhole-database
+                nfs:
+                    server: 10.152.183.213
+                    path: /greyhole/database
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: storage
-  name: greyhole
-  labels:
-    app: greyhole
+    namespace: storage
+    name: greyhole
+    labels:
+        app: greyhole
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      role: greyhole
-  template:
-    metadata:
-      labels:
-        role: greyhole
-    spec:
-      nodeSelector:
-        kubernetes.io/hostname: "amd64node4.lan"
-      containers:
-      - name: greyhole
-        image: dragoncrafted87/alpine-greyhole:edge
-        imagePullPolicy: Always
-        securityContext:
-          privileged: true
-        ports:
-        - containerPort: 139
-          name: smb1
-          protocol: TCP
-        - containerPort: 445
-          name: smb2
-          protocol: TCP
-        livenessProbe:
-          tcpSocket:
-            port: 445
-          initialDelaySeconds: 60
-          timeoutSeconds: 5
-        volumeMounts:
-        - name: greyhole-config
-          mountPath: /mnt/config
-        - name: greyhole-lz
-          mountPath: /mnt/landing_zone
-        - name: greyhole-enclosure1-drive1
-          mountPath: /mnt/enclosure1_drive1
-        - name: greyhole-enclosure1-drive2
-          mountPath: /mnt/enclosure1_drive2
-        - name: greyhole-enclosure1-drive3
-          mountPath: /mnt/enclosure1_drive3
-        - name: greyhole-enclosure1-drive4
-          mountPath: /mnt/enclosure1_drive4
-
-#        - name: greyhole-enclosure2-drive1
-#          mountPath: /mnt/enclosure2_drive1
-#        - name: greyhole-enclosure2-drive2
-#          mountPath: /mnt/enclosure2_drive2
-#        - name: greyhole-enclosure2-drive3
-#          mountPath: /mnt/enclosure2_drive3
-#        - name: greyhole-enclosure2-drive4
-#          mountPath: /mnt/enclosure2_drive4
-#        - name: greyhole-enclosure2-drive5
-#          mountPath: /mnt/enclosure2_drive5
-      volumes:
-      - name: greyhole-config
-        hostPath:
-          path: /mnt/enclosure1_drive8/greyhole_staging_area/config/
-          type: ""
-      - name: greyhole-lz
-        hostPath:
-          path: /mnt/enclosure1_drive8/greyhole_staging_area/landing_zone/
-          type: ""
-
-      - name: greyhole-enclosure1-drive1
-        hostPath:
-          path: /mnt/enclosure1_drive1/
-          type: ""
-      - name: greyhole-enclosure1-drive2
-        hostPath:
-          path: /mnt/enclosure1_drive2/
-          type: ""
-      - name: greyhole-enclosure1-drive3
-        hostPath:
-          path: /mnt/enclosure1_drive3/
-          type: ""
-      - name: greyhole-enclosure1-drive4
-        hostPath:
-          path: /mnt/enclosure1_drive4/
-          type: ""
-
-#      - name: greyhole-enclosure2-drive1
-#        hostPath:
-#          path: /mnt/enclosure2_drive1/
-#          type: ""
-#      - name: greyhole-enclosure2-drive2
-#        hostPath:
-#          path: /mnt/enclosure2_drive2/
-#          type: ""
-#      - name: greyhole-enclosure2-drive3
-#        hostPath:
-#          path: /mnt/enclosure2_drive3/
-#          type: ""
-#      - name: greyhole-enclosure2-drive4
-#        hostPath:
-#          path: /mnt/enclosure2_drive4/
-#          type: ""
-#      - name: greyhole-enclosure2-drive5
-#        hostPath:
-#          path: /mnt/enclosure2_drive5/
-#          type: ""
+    replicas: 1
+    selector:
+        matchLabels:
+            role: greyhole
+    template:
+        metadata:
+            labels:
+                role: greyhole
+        spec:
+            nodeSelector:
+                kubernetes.io/hostname: amd64node4.lan
+            containers:
+            -   name: greyhole
+                image: dragoncrafted87/alpine-greyhole:edge
+                imagePullPolicy: Always
+                securityContext:
+                    privileged: true
+                ports:
+                -   containerPort: 139
+                    name: smb1
+                    protocol: TCP
+                -   containerPort: 445
+                    name: smb2
+                    protocol: TCP
+                livenessProbe:
+                    tcpSocket:
+                        port: 445
+                    initialDelaySeconds: 60
+                    timeoutSeconds: 5
+                volumeMounts:
+                -   name: greyhole-config
+                    mountPath: /mnt/config
+                -   name: greyhole-lz
+                    mountPath: /mnt/landing_zone
+                -   name: greyhole-enclosure1-drive1
+                    mountPath: /mnt/enclosure1_drive1
+                -   name: greyhole-enclosure1-drive2
+                    mountPath: /mnt/enclosure1_drive2
+                -   name: greyhole-enclosure1-drive3
+                    mountPath: /mnt/enclosure1_drive3
+                -   name: greyhole-enclosure1-drive4
+                    mountPath: /mnt/enclosure1_drive4
+            volumes:
+            -   name: greyhole-config
+                hostPath:
+                    path: /mnt/enclosure1_drive8/greyhole_staging_area/config/
+                    type: ''
+            -   name: greyhole-lz
+                hostPath:
+                    path: /mnt/enclosure1_drive8/greyhole_staging_area/landing_zone/
+                    type: ''
+            -   name: greyhole-enclosure1-drive1
+                hostPath:
+                    path: /mnt/enclosure1_drive1/
+                    type: ''
+            -   name: greyhole-enclosure1-drive2
+                hostPath:
+                    path: /mnt/enclosure1_drive2/
+                    type: ''
+            -   name: greyhole-enclosure1-drive3
+                hostPath:
+                    path: /mnt/enclosure1_drive3/
+                    type: ''
+            -   name: greyhole-enclosure1-drive4
+                hostPath:
+                    path: /mnt/enclosure1_drive4/
+                    type: ''
