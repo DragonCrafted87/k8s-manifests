@@ -5,11 +5,22 @@ metadata:
     namespace: games
 data:
     modlist.conf: |
-        https://api.cfwidget.com/minecraft/mc-mods/bounding-box-outline-reloaded
-        https://api.cfwidget.com/minecraft/mc-mods/carpet
-        https://api.cfwidget.com/minecraft/mc-mods/fabric-api
-        https://api.cfwidget.com/minecraft/mc-mods/lithium
-        https://api.cfwidget.com/minecraft/mc-mods/phosphor
-        https://api.cfwidget.com/minecraft/mc-mods/shulkerboxtooltip
+        # https://www.curseforge.com/minecraft/mc-mods/fabric-api
+        https://api.cfwidget.com/306612
+        # https://www.curseforge.com/minecraft/mc-mods/lithium
+        https://api.cfwidget.com/360438
+        # https://www.curseforge.com/minecraft/mc-mods/phosphor
+        https://api.cfwidget.com/372124
+        # https://www.curseforge.com/minecraft/mc-mods/shulkerboxtooltip
+        https://api.cfwidget.com/315811
+        # https://www.curseforge.com/minecraft/mc-mods/simple-voice-chat
+        https://api.cfwidget.com/416089
+        # https://www.curseforge.com/minecraft/mc-mods/worldedit
+        https://api.cfwidget.com/225608
+
+        # https://github.com/gnembon/fabric-carpet/releases
+        https://api.github.com/repos/gnembon/fabric-carpet/releases
+        # https://github.com/gnembon/carpet-extra/releases
         https://api.github.com/repos/gnembon/carpet-extra/releases
+        # https://github.com/gnembon/carpet-autoCraftingTable/releases
         https://api.github.com/repos/gnembon/carpet-autoCraftingTable/releases

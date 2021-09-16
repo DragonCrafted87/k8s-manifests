@@ -25,7 +25,7 @@ spec:
                 -   name: TZ
                     value: America/Chicago
                 -   name: MINECRAFT_VERSION
-                    value: '1.17'
+                    value: 1.17.1
                 ports:
                 -   name: minecraft
                     containerPort: 25565
@@ -33,6 +33,9 @@ spec:
                 -   name: rcon
                     containerPort: 25575
                     protocol: TCP
+                -   name: voice
+                    containerPort: 24454
+                    protocol: UDP
                 volumeMounts:
                 -   name: vanillaplusplus
                     mountPath: /mnt/minecraft

@@ -1,49 +1,3 @@
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-    namespace: storage
-    name: greyhole-database
-    labels:
-        app: greyhole
-spec:
-    replicas: 1
-    selector:
-        matchLabels:
-            role: greyhole-database
-    template:
-        metadata:
-            labels:
-                role: greyhole-database
-        spec:
-            containers:
-            -   name: mysql
-                image: dragoncrafted87/greyhole-database:edge
-                imagePullPolicy: Always
-                env:
-                -   name: MYSQL_ROOT_PASSWORD
-                    valueFrom:
-                        secretKeyRef:
-                            name: greyhole-database-pass
-                            key: password
-                -   name: MYSQL_DATABASE
-                    value: greyhole
-                -   name: MYSQL_USER
-                    value: greyhole_user
-                -   name: MYSQL_PASSWORD
-                    value: 89y63jdwe
-                ports:
-                -   containerPort: 3306
-                    name: mysql
-                volumeMounts:
-                -   name: greyhole-database
-                    mountPath: /var/lib/mysql
-            volumes:
-            -   name: greyhole-database
-                nfs:
-                    server: 10.152.183.213
-                    path: /greyhole/database
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -69,6 +23,9 @@ spec:
                 imagePullPolicy: Always
                 securityContext:
                     privileged: true
+                env:
+                -   name: TZ
+                    value: America/Chicago
                 ports:
                 -   containerPort: 139
                     name: smb1
@@ -82,6 +39,12 @@ spec:
                     initialDelaySeconds: 60
                     timeoutSeconds: 5
                 volumeMounts:
+                -   name: smbconf
+                    mountPath: /etc/samba/smb.conf
+                    subPath: smb.conf
+                -   name: greyholeconf
+                    mountPath: /etc/greyhole.conf
+                    subPath: greyhole.conf
                 -   name: greyhole-config
                     mountPath: /mnt/config
                 -   name: greyhole-lz
@@ -94,7 +57,50 @@ spec:
                     mountPath: /mnt/enclosure1_drive3
                 -   name: greyhole-enclosure1-drive4
                     mountPath: /mnt/enclosure1_drive4
+                -   name: greyhole-enclosure1-drive5
+                    mountPath: /mnt/enclosure1_drive5
+                -   name: greyhole-enclosure1-drive6
+                    mountPath: /mnt/enclosure1_drive6
+                -   name: greyhole-enclosure1-drive7
+                    mountPath: /mnt/enclosure1_drive7
+                -   name: greyhole-enclosure1-drive8
+                    mountPath: /mnt/enclosure1_drive8
+            -   name: mysql
+                image: dragoncrafted87/greyhole-database:edge
+                imagePullPolicy: Always
+                env:
+                -   name: TZ
+                    value: America/Chicago
+                -   name: MYSQL_ROOT_PASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            name: greyhole-database-pass
+                            key: password
+                -   name: MYSQL_DATABASE
+                    value: greyhole
+                -   name: MYSQL_USER
+                    value: greyhole_user
+                -   name: MYSQL_PASSWORD
+                    value: 89y63jdwe
+                ports:
+                -   containerPort: 3306
+                    name: mysql
+                volumeMounts:
+                -   name: greyhole-database
+                    mountPath: /var/lib/mysql
             volumes:
+            -   name: smbconf
+                configMap:
+                    name: smb.conf
+                    items:
+                    -   key: smb.conf
+                        path: smb.conf
+            -   name: greyholeconf
+                configMap:
+                    name: greyhole.conf
+                    items:
+                    -   key: greyhole.conf
+                        path: greyhole.conf
             -   name: greyhole-config
                 hostPath:
                     path: /mnt/enclosure1_drive8/greyhole_staging_area/config/
@@ -119,3 +125,22 @@ spec:
                 hostPath:
                     path: /mnt/enclosure1_drive4/
                     type: ''
+            -   name: greyhole-enclosure1-drive5
+                hostPath:
+                    path: /mnt/enclosure1_drive5/
+                    type: ''
+            -   name: greyhole-enclosure1-drive6
+                hostPath:
+                    path: /mnt/enclosure1_drive6/
+                    type: ''
+            -   name: greyhole-enclosure1-drive7
+                hostPath:
+                    path: /mnt/enclosure1_drive7/
+                    type: ''
+            -   name: greyhole-enclosure1-drive8
+                hostPath:
+                    path: /mnt/enclosure1_drive8/greyhole_storage/
+                    type: ''
+            -   name: greyhole-database
+                hostPath:
+                    path: /mnt/enclosure1_drive8/greyhole_staging_area/database/
