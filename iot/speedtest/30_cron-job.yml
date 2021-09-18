@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-    name: speedtest-daily
+    name: speedtest
     namespace: iot
     labels:
         app: speedtest-cron
