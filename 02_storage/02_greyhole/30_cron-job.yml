@@ -41,8 +41,8 @@ metadata:
         app: greyhole-cron
 spec:
     schedule: '*/5 * * * *'
-    successfulJobsHistoryLimit: 5
-    failedJobsHistoryLimit: 1
+    successfulJobsHistoryLimit: 2
+    failedJobsHistoryLimit: 4
     concurrencyPolicy: Replace
     jobTemplate:
         spec:
