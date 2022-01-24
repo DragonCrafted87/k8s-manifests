@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
     namespace: games
-    name: minecraft
+    name: minecraft-uhc
     labels:
-        app: minecraft
+        app: minecraft-uhc
 spec:
     replicas: 1
     selector:
         matchLabels:
-            role: minecraft
+            role: minecraft-uhc
     template:
         metadata:
             labels:
-                role: minecraft
+                role: minecraft-uhc
         spec:
             nodeSelector:
                 kubernetes.io/hostname: amd64node5.lan
             containers:
-            -   name: minecraft
+            -   name: minecraft-uhc
                 image: dragoncrafted87/alpine-minecraft:edge
                 imagePullPolicy: Always
                 env:
@@ -37,28 +37,29 @@ spec:
                     containerPort: 24454
                     protocol: UDP
                 volumeMounts:
-                -   name: vanillaplusplus
+                -   name: minecraft-data
                     mountPath: /mnt/minecraft
                 -   name: local-volume
                     mountPath: /mnt/ramdisk
                 -   name: ram-volume
                     mountPath: /mnt/ramdisk/world
-                -   name: modlist
+                -   name: config
                     mountPath: /mnt/ramdisk/modlist.conf
                     subPath: modlist.conf
+                    readOnly: true
             volumes:
-            -   name: vanillaplusplus
+            -   name: minecraft-data
                 nfs:
                     server: 10.152.183.213
-                    path: /minecraft-vanillaplusplus
+                    path: /minecraft-hardcore
             -   name: local-volume
                 emptyDir: {}
             -   name: ram-volume
                 emptyDir:
                     medium: Memory
-            -   name: modlist
+            -   name: config
                 configMap:
-                    name: modlist.conf
+                    name: mc-uhc-config
                     items:
-                    -   key: modlist.conf
+                    -   key: modlist
                         path: modlist.conf

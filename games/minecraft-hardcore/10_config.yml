@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: modlist.conf
+    name: mc-uhc-config
     namespace: games
 data:
-    modlist.conf: |
+    modlist: |
         # https://www.curseforge.com/minecraft/mc-mods/fabric-api
         https://api.cfwidget.com/306612
         # https://www.curseforge.com/minecraft/mc-mods/lithium
@@ -15,8 +15,8 @@ data:
         https://api.cfwidget.com/315811
         # https://www.curseforge.com/minecraft/mc-mods/simple-voice-chat
         https://api.cfwidget.com/416089
-        # https://www.curseforge.com/minecraft/mc-mods/worldedit
-        https://api.cfwidget.com/225608
+        # https://www.curseforge.com/minecraft/mc-mods/servux
+        https://api.cfwidget.com/406323
 
         # https://github.com/gnembon/fabric-carpet/releases
         https://api.github.com/repos/gnembon/fabric-carpet/releases

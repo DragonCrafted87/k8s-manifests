@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    namespace: games
+    name: minecraft-vpp
+    labels:
+        app: minecraft-vpp
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            role: minecraft-vpp
+    template:
+        metadata:
+            labels:
+                role: minecraft-vpp
+        spec:
+            nodeSelector:
+                kubernetes.io/hostname: amd64node5.lan
+            containers:
+            -   name: minecraft-vpp
+                image: dragoncrafted87/alpine-minecraft:edge
+                imagePullPolicy: Always
+                env:
+                -   name: TZ
+                    value: America/Chicago
+                -   name: MINECRAFT_VERSION
+                    value: 1.18.1
+                ports:
+                -   name: minecraft
+                    containerPort: 25565
+                    protocol: TCP
+                -   name: rcon
+                    containerPort: 25575
+                    protocol: TCP
+                -   name: voice
+                    containerPort: 24454
+                    protocol: UDP
+                volumeMounts:
+                -   name: vanillaplusplus
+                    mountPath: /mnt/minecraft
+                -   name: local-volume
+                    mountPath: /mnt/ramdisk
+                -   name: ram-volume
+                    mountPath: /mnt/ramdisk/world
+                -   name: modlist
+                    mountPath: /mnt/ramdisk/modlist.conf
+                    subPath: modlist.conf
+            volumes:
+            -   name: vanillaplusplus
+                nfs:
+                    server: 10.152.183.213
+                    path: /minecraft-vanillaplusplus
+            -   name: local-volume
+                emptyDir: {}
+            -   name: ram-volume
+                emptyDir:
+                    medium: Memory
+            -   name: modlist
+                configMap:
+                    name: modlist.conf
+                    items:
+                    -   key: modlist.conf
+                        path: modlist.conf
