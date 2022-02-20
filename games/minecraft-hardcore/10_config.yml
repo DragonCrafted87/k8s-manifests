@@ -18,11 +18,13 @@ data:
         # https://www.curseforge.com/minecraft/mc-mods/servux
         https://api.cfwidget.com/406323
 
-
         # https://www.curseforge.com/minecraft/mc-mods/trinkets-fabric
         https://api.cfwidget.com/341284
         # https://www.curseforge.com/minecraft/mc-mods/elytra-trinket-fabric
         https://api.cfwidget.com/397903
+
+        # https://www.curseforge.com/minecraft/mc-mods/all-stackable
+        https://api.cfwidget.com/404312
 
         # https://github.com/gnembon/fabric-carpet/releases
         https://api.github.com/repos/gnembon/fabric-carpet/releases
