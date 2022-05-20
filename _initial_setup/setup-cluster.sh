@@ -2,7 +2,7 @@ return
 
 sudo apt-get install -y nfs-common cifs-utils
 
-sudo snap install microk8s --classic --channel=1.20
+sudo snap install microk8s --classic --channel=1.23
 
 sudo iptables -P FORWARD ACCEPT
 sudo apt-get install iptables-persistent
@@ -11,7 +11,7 @@ sudo usermod -a -G microk8s $USER
 sudo chown -f -R $USER ~/.kube
 
 # change k8s version
-sudo snap refresh microk8s --classic --channel=1.20
+sudo snap refresh microk8s --classic --channel=1.23
 
 # reset snap
 snap list
