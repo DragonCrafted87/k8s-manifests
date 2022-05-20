@@ -1,10 +1,26 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: unbound.conf
+    name: unbound-configuration
     namespace: dns
 data:
-# yamllint disable rule:indentation
+    domainlist.conf: |
+        https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+        https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+        https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt
+        https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/android-tracking.txt
+        https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt
+        https://v.firebog.net/hosts/Easyprivacy.txt
+        https://v.firebog.net/hosts/Prigent-Ads.txt
+
+    hostfilelist.conf: |
+        https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.2o7Net/hosts
+        https://blocklistproject.github.io/Lists/tracking.txt
+        https://blocklistproject.github.io/Lists/malware.txt
+        https://blocklistproject.github.io/Lists/ads.txt
+        https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt
+
     unbound.conf: |
         server:
             # If no logfile is specified, syslog is used
@@ -17,12 +33,10 @@ data:
             do-udp: yes
             do-tcp: yes
 
-            # May be set to yes if you have IPv6 connectivity
-            do-ip6: no
-
-            # You want to leave this to no unless you have *native* IPv6. With 6to4 and
-            # Terredo tunnels your web browser should favor IPv4 for the same reasons
-            prefer-ip6: no
+            # IPv6 connectivity
+            do-ip6: yes
+            prefer-ip6: yes
+            module-config: "dns64 validator iterator"
 
             # Use this only when you downloaded the list of primary root servers!
             # If you use the default dns-root-data package, unbound will find it automatically
@@ -45,17 +59,72 @@ data:
             # Perform prefetching of close to expired message cache entries
             # This only applies to domains that have been frequently queried
             prefetch: yes
+            prefetch-key: yes
 
             # One thread should be sufficient, can be increased on beefy machines.
             # In reality for most users running on small networks or on a single machine,
             # it should be unnecessary to seek performance enhancement by increasing num-threads above 1.
             num-threads: 1
 
-            # Ensure privacy of local IP ranges
-            private-address: 192.168.0.0/16
+            #
+            # IPv4 Addresses
+            #
+            private-address: 0.0.0.0/8       # Broadcast address
+            private-address: 10.0.0.0/8
+            private-address: 100.64.0.0/10
+            private-address: 127.0.0.0/8     # Loopback Localhost
             private-address: 169.254.0.0/16
             private-address: 172.16.0.0/12
-            private-address: 10.0.0.0/8
-            private-address: fd00::/8
-            private-address: fe80::/10
-# yamllint enable rule:indentation
+            private-address: 192.0.2.0/24    # Documentation network TEST-NET
+            private-address: 192.168.0.0/16
+            private-address: 198.18.0.0/15   # Used for testing inter-network communications
+            private-address: 198.51.100.0/24 # Documentation network TEST-NET-2
+            private-address: 203.0.113.0/24  # Documentation network TEST-NET-3
+            private-address: 233.252.0.0/24  # Documentation network MCAST-TEST-NET
+            #
+            # IPv6 Addresses
+            #
+            private-address: ::1/128         # Loopback Localhost
+            private-address: 2001:db8::/32   # Documentation network IPv6
+            private-address: fc00::/8        # Unique local address (ULA) part of "fc00::/7", not defined yet
+            private-address: fd00::/8        # Unique local address (ULA) part of "fc00::/7", "/48" prefix group
+            private-address: fe80::/10       # Link-local address (LLA)
+
+            # DNS Ad Blocking
+            include: /etc/unbound/blocklist.conf
+
+            # Static host entries
+            local-zone: "lan" transparent
+            local-data-ptr: "127.0.0.1 localhost"
+            local-data: "localhost A 127.0.0.1"
+            local-data: "localhost.lan A 127.0.0.1"
+            local-data-ptr: "::1 localhost"
+            local-data: "localhost AAAA ::1"
+            local-data: "localhost.lan AAAA ::1"
+
+            local-data-ptr: "192.168.0.1 dragonsense.lan"
+            local-data: "dragonsense.lan A 192.168.0.1"
+            local-data: "dragonsense A 192.168.0.1"
+
+            local-data-ptr: "192.168.0.10 dragonbase.lan"
+            local-data: "dragonbase.lan IN A 192.168.0.10"
+
+            local-data-ptr: "192.168.0.51 amd64node2.lan"
+            local-data: "amd64node2.lan IN A 192.168.0.51"
+            local-data-ptr: "192.168.0.53 amd64node4.lan"
+            local-data: "amd64node4.lan IN A 192.168.0.53"
+            local-data-ptr: "192.168.0.54 amd64node5.lan"
+            local-data: "amd64node5.lan IN A 192.168.0.54"
+
+            local-data-ptr: "192.168.0.101 weatherstation.lan"
+            local-data: "weatherstation.lan IN A 192.168.0.101"
+            local-data-ptr: "192.168.0.20 hallway_ap.lan"
+            local-data: "hallway_ap.lan IN A 192.168.0.20"
+            local-data-ptr: "192.168.0.6 dragonprinter.lan"
+            local-data: "dragonprinter.lan IN A 192.168.0.6"
+
+            local-data-ptr: "192.168.8.2 dragondata.lan"
+            local-data: "dragondata.lan IN A 192.168.8.2"
+
+            local-data-ptr: "192.168.8.20 hass.lan"
+            local-data: "hass.lan IN A 192.168.8.20"

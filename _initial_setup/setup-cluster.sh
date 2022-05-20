@@ -46,3 +46,10 @@ microk8s config
 
 # apply all the manifests
 kubectl apply -f . --recursive
+
+
+
+
+https://discuss.kubernetes.io/t/microk8s-ipv6-dualstack-how-to/14507
+
+kubectl apply -f https://docs.projectcalico.org/archive/v3.13/manifests/calicoctl.yaml

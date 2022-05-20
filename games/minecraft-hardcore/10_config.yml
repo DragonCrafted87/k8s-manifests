@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mc-uhc-config
+    namespace: games
+data:
+    modlist: |
+        # https://www.curseforge.com/minecraft/mc-mods/fabric-api
+        https://api.cfwidget.com/306612
+        # https://www.curseforge.com/minecraft/mc-mods/lithium
+        https://api.cfwidget.com/360438
+        # https://www.curseforge.com/minecraft/mc-mods/starlight
+        https://api.cfwidget.com/521783
+        # https://www.curseforge.com/minecraft/mc-mods/shulkerboxtooltip
+        https://api.cfwidget.com/315811
+        # https://www.curseforge.com/minecraft/mc-mods/servux
+        https://api.cfwidget.com/406323
+
+        # https://www.curseforge.com/minecraft/mc-mods/trinkets-fabric
+        https://api.cfwidget.com/341284
+        # https://www.curseforge.com/minecraft/mc-mods/elytra-trinket-fabric
+        https://api.cfwidget.com/397903
+
+        # https://www.curseforge.com/minecraft/mc-mods/all-stackable
+        https://api.cfwidget.com/404312
+
+        # https://github.com/gnembon/fabric-carpet/releases
+        https://api.github.com/repos/gnembon/fabric-carpet/releases
+        # https://github.com/gnembon/carpet-extra/releases
+        https://api.github.com/repos/gnembon/carpet-extra/releases
+        # https://github.com/gnembon/carpet-autoCraftingTable/releases
+        https://api.github.com/repos/gnembon/carpet-autoCraftingTable/releases

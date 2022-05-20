@@ -25,13 +25,14 @@ spec:
                 command: [/bin/sh]
                 args:
                 -   -c
-                -   python
-                -   dish_grpc_mqtt.py
-                -   -n 10.152.183.226
-                -   -p 1883
-                -   -v
-                -   -t 5
-                -   status
-                -   obstruction_detail
-                -   alert_detail
+                -   >-
+                    python
+                    dish_grpc_mqtt.py
+                    -n 10.152.183.226
+                    -p 1883
+                    -v
+                    -t 5
+                    status
+                    obstruction_detail
+                    alert_detail
             restartPolicy: Always

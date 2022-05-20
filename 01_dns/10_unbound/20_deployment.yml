@@ -34,6 +34,9 @@ spec:
             -   name: unbound
                 image: dragoncrafted87/alpine-unbound:edge
                 imagePullPolicy: Always
+                env:
+                -   name: TZ
+                    value: America/Chicago
                 ports:
                 -   containerPort: 53
                     name: dns-tcp
@@ -51,11 +54,29 @@ spec:
                 -   name: conf
                     mountPath: /etc/unbound/unbound.conf
                     subPath: unbound.conf
+                -   name: domainlist
+                    mountPath: /config/domainlist.conf
+                    subPath: domainlist.conf
+                -   name: hostfilelist
+                    mountPath: /config/hostfilelist.conf
+                    subPath: hostfilelist.conf
             restartPolicy: Always
             volumes:
             -   name: conf
                 configMap:
-                    name: unbound.conf
+                    name: unbound-configuration
                     items:
                     -   key: unbound.conf
                         path: unbound.conf
+            -   name: domainlist
+                configMap:
+                    name: unbound-configuration
+                    items:
+                    -   key: domainlist.conf
+                        path: domainlist.conf
+            -   name: hostfilelist
+                configMap:
+                    name: unbound-configuration
+                    items:
+                    -   key: hostfilelist.conf
+                        path: hostfilelist.conf
