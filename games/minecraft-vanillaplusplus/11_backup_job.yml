@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mc-vpp-backup-job
+  namespace: storage
+  labels:
+    app: mc-vpp-backup-job
+spec:
+  template:
+    metadata:
+      name: mc-vpp-backup-job
+    spec:
+      containers:
+      - name: mc-vpp-backup
+        image: dragoncrafted87/alpine-backup-cron:edge
+        imagePullPolicy: Always
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: BACKUP_NAME
+          value: minecraft-vpp-backup
+        volumeMounts:
+        - name: minecraft
+          mountPath: /mnt/source
+        - name: backup
+          mountPath: /mnt/backups
+      restartPolicy: OnFailure
+      volumes:
+      - name: minecraft
+        nfs:
+          server: 10.152.183.213
+          path: /minecraft-hardcore
+      - name: backup
+        flexVolume:
+          driver: fstab/cifs
+          secretRef:
+            name: cifs-secret
+          options:
+            networkPath: //192.168.8.2/Backups/K8s/
+            mountOptions: dir_mode=0755,file_mode=0644,noperm

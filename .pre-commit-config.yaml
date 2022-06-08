@@ -1,47 +1,49 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
-    hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: fix-byte-order-marker
-    -   id: fix-encoding-pragma
-    -   id: mixed-line-ending
-        args:
-        -   --fix=lf
-    -   id: check-yaml
-        args:
-        -   --allow-multiple-documents
-    -   id: check-added-large-files
-    -   id: check-json
-    -   id: pretty-format-json
-        args:
-        -   --autofix
-        -   --indent
-        -   '4'
--   repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.2.0
-    hooks:
-    -   id: pretty-format-yaml
-        args:
-        -   --autofix
-        -   --indent
-        -   '4'
--   repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.12
-    hooks:
-    -   id: mdformat
-        args:
-        -   --end-of-line
-        -   lf
-        additional_dependencies:
-        -   mdformat-gfm
-        -   mdformat-black
--   repo: https://github.com/adrienverge/yamllint
-    rev: v1.26.3
-    hooks:
-    -   id: yamllint
--   repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.30.0
-    hooks:
-    -   id: markdownlint
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.2.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: fix-byte-order-marker
+  - id: fix-encoding-pragma
+  - id: mixed-line-ending
+    args:
+    - --fix=lf
+  - id: check-yaml
+    args:
+    - --allow-multiple-documents
+  - id: check-added-large-files
+  - id: check-json
+  - id: pretty-format-json
+    args:
+    - --autofix
+    - --indent
+    - '4'
+# YAML
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: pretty-format-yaml
+    args:
+    - --autofix
+    - --indent
+    - '2'
+- repo: https://github.com/adrienverge/yamllint
+  rev: v1.26.3
+  hooks:
+  - id: yamllint
+# MARKDOWN
+- repo: https://github.com/executablebooks/mdformat
+  rev: 0.7.14
+  hooks:
+  - id: mdformat
+    args:
+    - --end-of-line
+    - lf
+    additional_dependencies:
+    - mdformat-gfm
+    - mdformat-black
+- repo: https://github.com/igorshubovych/markdownlint-cli
+  rev: v0.31.1
+  hooks:
+  - id: markdownlint

@@ -4,8 +4,10 @@ sudo apt-get install -y nfs-common cifs-utils
 
 sudo snap install microk8s --classic --channel=1.23
 
-sudo iptables -P FORWARD ACCEPT
 sudo apt-get install iptables-persistent
+sudo iptables -P FORWARD ACCEPT
+sudo iptables-save
+sudo iptables-legacy-save
 
 sudo usermod -a -G microk8s $USER
 sudo chown -f -R $USER ~/.kube
@@ -15,6 +17,7 @@ sudo snap refresh microk8s --classic --channel=1.23
 
 # reset snap
 snap list
+sudo snap remove microk8s
 sudo snap remove core18
 sudo snap remove snapd
 
@@ -31,6 +34,8 @@ sudo apt install snapd
 
 # first node
 microk8s status --wait-ready
+
+microk8s enable dns dashboard ingress dashboard-ingress
 
 microk8s enable dns dashboard
 microk8s enable metallb:192.168.8.1-192.168.15.255
