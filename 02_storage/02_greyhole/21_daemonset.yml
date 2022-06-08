@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-    name: cifs-flexvol-installer
-    namespace: storage
+  name: cifs-flexvol-installer
+  namespace: storage
 spec:
-    selector:
-        matchLabels:
-            name: cifs
-    template:
-        metadata:
-            labels:
-                name: cifs
-        spec:
-            containers:
-            -   name: cifs-flexvol-installer
-                image: nelvadas/cifs-flexvol-installer:1.0.1
-                imagePullPolicy: IfNotPresent
-                securityContext:
-                    privileged: true
-                volumeMounts:
-                -   mountPath: /flexmnt
-                    name: flexvolume-mount
-            volumes:
-            -   name: flexvolume-mount
-                hostPath:
-                    path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
+  selector:
+    matchLabels:
+      name: cifs
+  template:
+    metadata:
+      labels:
+        name: cifs
+    spec:
+      containers:
+      - name: cifs-flexvol-installer
+        image: nelvadas/cifs-flexvol-installer:1.0.1
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /flexmnt
+          name: flexvolume-mount
+      volumes:
+      - name: flexvolume-mount
+        hostPath:
+          path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/

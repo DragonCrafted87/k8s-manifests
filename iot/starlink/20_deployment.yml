@@ -1,38 +1,39 @@
+# yamllint disable rule:indentation
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    namespace: iot
-    name: starlink
-    labels:
-        app.kubernetes.io/name: starlink
+  namespace: iot
+  name: starlink
+  labels:
+    app.kubernetes.io/name: starlink
 spec:
-    replicas: 1
-    selector:
-        matchLabels:
-            role: starlink
-    template:
-        metadata:
-            labels:
-                role: starlink
-        spec:
-            containers:
-            -   name: starlink
-                image: neurocis/starlink-grpc-tools
-                imagePullPolicy: Always
-                env:
-                -   name: TZ
-                    value: America/Chicago
-                command: [/bin/sh]
-                args:
-                -   -c
-                -   >-
-                    python
-                    dish_grpc_mqtt.py
-                    -n 10.152.183.226
-                    -p 1883
-                    -v
-                    -t 5
-                    status
-                    obstruction_detail
-                    alert_detail
-            restartPolicy: Always
+  replicas: 1
+  selector:
+    matchLabels:
+      role: starlink
+  template:
+    metadata:
+      labels:
+        role: starlink
+    spec:
+      containers:
+      - name: starlink
+        image: neurocis/starlink-grpc-tools
+        imagePullPolicy: Always
+        env:
+        - name: TZ
+          value: America/Chicago
+        command: [/bin/sh]
+        args:
+        - -c
+        - >-
+          python
+          dish_grpc_mqtt.py
+          -n 10.152.183.226
+          -p 1883
+          -v
+          -t 5
+          status
+          obstruction_detail
+          alert_detail
+      restartPolicy: Always
