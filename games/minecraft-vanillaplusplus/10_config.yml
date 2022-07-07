@@ -37,7 +37,7 @@ data:
     # https://github.com/gnembon/carpet-autoCraftingTable/releases
     https://api.github.com/repos/gnembon/carpet-autoCraftingTable/releases
     # https://modrinth.com/mod/carpet-fixes
-    # https://api.modrinth.com/v2/project/7Jaxgqip/version
+    https://api.modrinth.com/v2/project/7Jaxgqip/version
 
     # https://modrinth.com/mod/chestrefill
     https://api.modrinth.com/v2/project/sv1q6VzG/version
@@ -49,4 +49,4 @@ data:
     https://api.cfwidget.com/470193
 
     # https://modrinth.com/mod/no-chat-reports
-    https://api.cfwidget.com/qQyHxfxd
+    https://api.modrinth.com/v2/project/qQyHxfxd/version
