@@ -34,8 +34,6 @@ data:
     https://api.github.com/repos/gnembon/fabric-carpet/releases
     # https://github.com/gnembon/carpet-extra/releases
     https://api.github.com/repos/gnembon/carpet-extra/releases
-    # https://github.com/gnembon/carpet-autoCraftingTable/releases
-    https://api.github.com/repos/gnembon/carpet-autoCraftingTable/releases
     # https://modrinth.com/mod/carpet-fixes
     https://api.modrinth.com/v2/project/7Jaxgqip/version
 
@@ -50,3 +48,9 @@ data:
 
     # https://modrinth.com/mod/no-chat-reports
     https://api.modrinth.com/v2/project/qQyHxfxd/version
+
+    # https://modrinth.com/mod/all-stackable
+    https://api.modrinth.com/v2/project/mwMd6V4r/version
+
+    # https://modrinth.com/mod/scout
+    https://api.modrinth.com/v2/project/QRYqnI15/version

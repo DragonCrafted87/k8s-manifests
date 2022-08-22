@@ -2,25 +2,25 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: games
-  name: minecraft-vpp
+  name: minecraft-redstone
   labels:
-    app: minecraft-vpp
+    app: minecraft-redstone
 spec:
   replicas: 1
   selector:
     matchLabels:
-      role: minecraft-vpp
+      role: minecraft-redstone
   template:
     metadata:
       labels:
-        role: minecraft-vpp
+        role: minecraft-redstone
     spec:
       nodeSelector:
         kubernetes.io/hostname: amd64node5.lan
       securityContext:
         fsGroup: 1000
       containers:
-      - name: minecraft-vpp
+      - name: minecraft-redstone
         image: dragoncrafted87/alpine-minecraft:edge
         imagePullPolicy: Always
         env:
@@ -56,7 +56,7 @@ spec:
       - name: minecraft
         nfs:
           server: 10.152.183.213
-          path: /minecraft-vanillaplusplus
+          path: /minecraft-redstone
       - name: local-volume
         emptyDir: {}
       - name: ram-volume

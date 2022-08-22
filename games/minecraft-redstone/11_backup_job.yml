@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: mc-vpp-backup-job
+  name: mc-red-backup-job
   namespace: storage
   labels:
-    app: mc-vpp-backup-job
+    app: mc-red-backup-job
 spec:
   schedule: 0 2 * * *
   successfulJobsHistoryLimit: 3
@@ -14,17 +14,17 @@ spec:
     spec:
       template:
         metadata:
-          name: mc-vpp-backup-job
+          name: mc-red-backup-job
         spec:
           containers:
-          - name: mc-vpp-backup
+          - name: mc-red-backup
             image: dragoncrafted87/alpine-backup-cron:edge
             imagePullPolicy: Always
             env:
             - name: TZ
               value: America/Chicago
             - name: BACKUP_NAME
-              value: minecraft-vpp-backup
+              value: minecraft-redstone
             volumeMounts:
             - name: minecraft
               mountPath: /mnt/source
@@ -35,7 +35,7 @@ spec:
           - name: minecraft
             nfs:
               server: 10.152.183.213
-              path: /minecraft-vanillaplusplus
+              path: /minecraft-redstone
           - name: backup
             flexVolume:
               driver: fstab/cifs
