@@ -29,8 +29,6 @@ spec:
           readOnly: false
       volumes:
       - name: config
-        configMap:
-          name: playit
-          items:
-          - key: playit
-            path: playit.toml
+        nfs:
+          server: 10.152.183.213
+          path: /playit
