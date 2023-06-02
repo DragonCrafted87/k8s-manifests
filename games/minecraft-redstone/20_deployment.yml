@@ -55,8 +55,8 @@ spec:
       volumes:
       - name: minecraft
         nfs:
-          server: 10.152.183.213
-          path: /minecraft-redstone
+          server: 192.168.0.1
+          path: /srv/data/minecraft-redstone
       - name: local-volume
         emptyDir: {}
       - name: ram-volume

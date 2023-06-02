@@ -103,9 +103,9 @@ data:
       local-data: "localhost AAAA ::1"
       local-data: "localhost.lan AAAA ::1"
 
-      local-data-ptr: "192.168.0.1 dragonsense.lan"
-      local-data: "dragonsense.lan A 192.168.0.1"
-      local-data: "dragonsense A 192.168.0.1"
+      local-data-ptr: "192.168.0.1 dragonfire.lan"
+      local-data: "dragonfire.lan A 192.168.0.1"
+      local-data: "dragonfire A 192.168.0.1"
 
       local-data-ptr: "192.168.0.10 dragonbase.lan"
       local-data: "dragonbase.lan IN A 192.168.0.10"
@@ -129,3 +129,6 @@ data:
 
       local-data-ptr: "192.168.8.20 hass.lan"
       local-data: "hass.lan IN A 192.168.8.20"
+
+      local-data-ptr: "192.168.8.40 foundry.lan"
+      local-data: "foundry.lan IN A 192.168.8.40"

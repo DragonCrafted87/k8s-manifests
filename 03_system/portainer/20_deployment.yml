@@ -49,8 +49,8 @@
 #       volumes:
 #       - name: data
 #         nfs:
-#           server: 10.152.183.213
-#           path: /portainer
+#           server: 192.168.0.1
+#           path: /srv/data/portainer
 # ---
 # apiVersion: apps/v1
 # kind: Deployment

@@ -16,8 +16,8 @@ data:
     # https://modrinth.com/mod/krypton
     https://api.modrinth.com/v2/project/fQEb0iXm/version
 
-    # https://www.curseforge.com/minecraft/mc-mods/shulkerboxtooltip
-    https://api.cfwidget.com/315811
+    # https://modrinth.com/mod/shulkerboxtooltip
+    https://api.modrinth.com/v2/project/2M01OLQq/version
 
     # https://www.curseforge.com/minecraft/mc-mods/servux
     https://api.cfwidget.com/406323
@@ -26,9 +26,8 @@ data:
     https://api.modrinth.com/v2/project/5aaWibi9/version
     # https://www.curseforge.com/minecraft/mc-mods/elytra-trinket-fabric
     https://api.cfwidget.com/397903
-
-    # https://modrinth.com/mod/simple-voice-chat
-    https://api.modrinth.com/v2/project/9eGKb6K1/version
+    # https://modrinth.com/mod/scout
+    https://api.modrinth.com/v2/project/QRYqnI15/version
 
     # https://github.com/gnembon/fabric-carpet/releases
     https://api.github.com/repos/gnembon/fabric-carpet/releases
@@ -36,6 +35,8 @@ data:
     https://api.github.com/repos/gnembon/carpet-extra/releases
     # https://modrinth.com/mod/carpet-fixes
     https://api.modrinth.com/v2/project/7Jaxgqip/version
+    # https://github.com/FakeDomi/EasyAutoCrafting/releases
+    https://api.github.com/repos/FakeDomi/EasyAutoCrafting/releases
 
     # https://modrinth.com/mod/chestrefill
     https://api.modrinth.com/v2/project/sv1q6VzG/version
@@ -51,6 +52,3 @@ data:
 
     # https://modrinth.com/mod/all-stackable
     https://api.modrinth.com/v2/project/mwMd6V4r/version
-
-    # https://modrinth.com/mod/scout
-    https://api.modrinth.com/v2/project/QRYqnI15/version

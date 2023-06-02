@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: starlink
-        image: neurocis/starlink-grpc-tools
+        image: ghcr.io/sparky8512/starlink-grpc-tools
         imagePullPolicy: Always
         env:
         - name: TZ
@@ -29,10 +29,10 @@ spec:
         - >-
           python
           dish_grpc_mqtt.py
-          -n 10.152.183.226
-          -p 1883
-          -v
-          -t 5
+          --hostname 10.152.183.226
+          --port 1883
+          --verbose
+          --loop-interval 5
           status
           obstruction_detail
           alert_detail
