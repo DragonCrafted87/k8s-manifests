@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mc-vpp-config
+  namespace: games
+data:
+  modlist: |
+    # https://modrinth.com/mod/fabric-api
+    https://api.modrinth.com/v2/project/P7dR8mSH/version
+    # https://modrinth.com/mod/lithium
+    https://api.modrinth.com/v2/project/gvQqBUqZ/version
+    # https://modrinth.com/mod/starlight
+    https://api.modrinth.com/v2/project/H8CaAYZC/version
+    # https://modrinth.com/mod/ferrite-core
+    https://api.modrinth.com/v2/project/uXXizFIs/version
+    # https://modrinth.com/mod/krypton
+    https://api.modrinth.com/v2/project/fQEb0iXm/version
+
+    # https://modrinth.com/mod/shulkerboxtooltip
+    https://api.modrinth.com/v2/project/2M01OLQq/version
+
+    # https://www.curseforge.com/minecraft/mc-mods/servux
+    https://api.cfwidget.com/406323
+
+    # https://modrinth.com/mod/Trinkets
+    https://api.modrinth.com/v2/project/5aaWibi9/version
+    # https://www.curseforge.com/minecraft/mc-mods/elytra-trinket-fabric
+    https://api.cfwidget.com/397903
+    # https://modrinth.com/mod/scout
+    https://api.modrinth.com/v2/project/QRYqnI15/version
+
+    # https://github.com/gnembon/fabric-carpet/releases
+    https://api.github.com/repos/gnembon/fabric-carpet/releases
+    # https://github.com/gnembon/carpet-extra/releases
+    https://api.github.com/repos/gnembon/carpet-extra/releases
+    # https://modrinth.com/mod/carpet-fixes
+    https://api.modrinth.com/v2/project/7Jaxgqip/version
+    # https://github.com/FakeDomi/EasyAutoCrafting/releases
+    https://api.github.com/repos/FakeDomi/EasyAutoCrafting/releases
+
+    # https://modrinth.com/mod/chestrefill
+    https://api.modrinth.com/v2/project/sv1q6VzG/version
+
+    # https://modrinth.com/mod/horse-stonks
+    https://api.modrinth.com/v2/project/Vj70oKlA/version
+
+    # https://www.curseforge.com/minecraft/mc-mods/cupboard
+    https://api.cfwidget.com/326652
+    # https://www.curseforge.com/minecraft/mc-mods/connectivity
+    https://api.cfwidget.com/470193
+
+    # https://modrinth.com/mod/no-chat-reports
+    https://api.modrinth.com/v2/project/qQyHxfxd/version
+
+    # https://modrinth.com/mod/all-stackable
+    https://api.modrinth.com/v2/project/mwMd6V4r/version

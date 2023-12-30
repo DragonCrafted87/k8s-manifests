@@ -1,0 +1,39 @@
+# yamllint disable rule:indentation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: iot
+  name: starlink
+  labels:
+    app.kubernetes.io/name: starlink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: starlink
+  template:
+    metadata:
+      labels:
+        role: starlink
+    spec:
+      containers:
+      - name: starlink
+        image: ghcr.io/sparky8512/starlink-grpc-tools:v1.1.2
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        command: [/bin/sh]
+        args:
+        - -c
+        - >-
+          python
+          dish_grpc_mqtt.py
+          --hostname 10.152.183.226
+          --port 1883
+          --verbose
+          --loop-interval 5
+          status
+          obstruction_detail
+          alert_detail
+      restartPolicy: Always

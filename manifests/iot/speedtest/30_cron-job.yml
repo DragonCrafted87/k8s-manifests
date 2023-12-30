@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: speedtest
+  namespace: iot
+  labels:
+    app: speedtest-cron
+spec:
+  schedule: '*/30 * * * *'
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: speedtest-cron
+            image: ghcr.io/dragoncrafted87/alpine-speedtest-mqtt-publisher:2.0.1
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: MQTT_SERVER
+              value: 10.152.183.226
+            - name: MQTT_SERVER_PORT
+              value: '1883'
+          restartPolicy: OnFailure

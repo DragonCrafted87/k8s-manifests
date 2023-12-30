@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: games
+  name: playit-agent
+  labels:
+    app: playit-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: playit-agent
+  template:
+    metadata:
+      labels:
+        role: playit-agent
+    spec:
+      containers:
+      - name: playit-agent
+        image: ghcr.io/dragoncrafted87/alpine-playit-agent:0.15.10
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        volumeMounts:
+        - name: config
+          mountPath: /home/docker/playit.toml
+          subPath: playit.toml
+          readOnly: false
+      volumes:
+      - name: config
+        nfs:
+          server: 192.168.0.1
+          path: /srv/data/playit

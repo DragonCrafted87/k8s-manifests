@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: games
+  name: foundry
+  labels:
+    app: foundry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: foundry
+  template:
+    metadata:
+      labels:
+        role: foundry
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: foundry
+        image: ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner:2.0.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        ports:
+        - name: server
+          containerPort: 30000
+          protocol: TCP
+        volumeMounts:
+        - name: server
+          mountPath: /home/docker/server
+        - name: data
+          mountPath: /home/docker/data
+      volumes:
+      - name: server
+        nfs:
+          server: 192.168.0.1
+          path: /srv/data/foundry/server
+      - name: data
+        nfs:
+          server: 192.168.0.1
+          path: /srv/data/foundry/data

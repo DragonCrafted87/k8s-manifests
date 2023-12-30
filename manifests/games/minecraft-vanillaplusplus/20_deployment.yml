@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: games
+  name: minecraft-vpp
+  labels:
+    app: minecraft-vpp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: minecraft-vpp
+  template:
+    metadata:
+      labels:
+        role: minecraft-vpp
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: amd64node5.lan
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: minecraft-vpp
+        image: ghcr.io/dragoncrafted87/alpine-minecraft:2.0.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: MINECRAFT_VERSION
+          value: 1.19.2
+        ports:
+        - name: minecraft
+          containerPort: 25565
+          protocol: TCP
+        - name: rcon
+          containerPort: 25575
+          protocol: TCP
+        - name: voice
+          containerPort: 24454
+          protocol: UDP
+        - name: bedrock
+          containerPort: 19132
+          protocol: UDP
+        volumeMounts:
+        - name: minecraft
+          mountPath: /mnt/minecraft
+        - name: local-volume
+          mountPath: /mnt/ramdisk
+        - name: ram-volume
+          mountPath: /mnt/ramdisk/world
+        - name: config
+          mountPath: /mnt/ramdisk/modlist.conf
+          subPath: modlist.conf
+          readOnly: true
+      volumes:
+      - name: minecraft
+        nfs:
+          server: 192.168.0.1
+          path: /srv/data/minecraft-vanillaplusplus
+      - name: local-volume
+        emptyDir: {}
+      - name: ram-volume
+        emptyDir:
+          medium: Memory
+      - name: config
+        configMap:
+          name: mc-vpp-config
+          items:
+          - key: modlist
+            path: modlist.conf
