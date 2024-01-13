@@ -19,6 +19,13 @@ spec:
       - name: playit-agent
         image: ghcr.io/dragoncrafted87/alpine-playit-agent:0.15.10
         imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - exit $(test $(date +%H) -eq 8 && echo 1 || echo 0)
+          failureThreshold: 1
+          initialDelaySeconds: 3600
+          periodSeconds: 60
         env:
         - name: TZ
           value: America/Chicago
