@@ -32,7 +32,7 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: unbound
-        image: ghcr.io/dragoncrafted87/alpine-unbound:2.0.0
+        image: ghcr.io/dragoncrafted87/alpine-unbound:2.0.2
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ

@@ -18,7 +18,7 @@ spec:
         spec:
           containers:
           - name: mc-red-backup
-            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.0.0
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.0.1
             imagePullPolicy: IfNotPresent
             env:
             - name: TZ

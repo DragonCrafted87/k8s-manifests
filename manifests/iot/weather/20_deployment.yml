@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: weather
-        image: ghcr.io/dragoncrafted87/alpine-ambient-weather-mqtt-publisher:2.0.0
+        image: ghcr.io/dragoncrafted87/alpine-ambient-weather-mqtt-publisher:2.0.1
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
