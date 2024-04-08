@@ -35,8 +35,10 @@ data:
     https://api.github.com/repos/gnembon/carpet-extra/releases
     # https://modrinth.com/mod/carpet-fixes
     https://api.modrinth.com/v2/project/7Jaxgqip/version
-    # https://github.com/FakeDomi/EasyAutoCrafting/releases
-    https://api.github.com/repos/FakeDomi/EasyAutoCrafting/releases
+
+    # Auto Crafter
+    # https://modrinth.com/mod/eac
+    https://api.modrinth.com/v2/project/WNtHeS7V/version
 
     # https://modrinth.com/mod/chestrefill
     https://api.modrinth.com/v2/project/sv1q6VzG/version

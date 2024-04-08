@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: productivity
+  name: kimai-tcp
+  annotations:
+    metallb.universe.tf/allow-shared-ip: kimai
+spec:
+  ports:
+  - name: web
+    port: 80
+    targetPort: 8001
+    protocol: TCP
+  selector:
+    role: kimai
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.50

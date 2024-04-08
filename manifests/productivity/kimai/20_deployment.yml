@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: productivity
+  name: kimai
+  labels:
+    app: kimai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: kimai
+  template:
+    metadata:
+      labels:
+        role: kimai
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: amd64node4.lan
+      containers:
+      - name: kimai
+        image: kimai/kimai2:apache-2.14.0-prod
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: DATABASE_URL
+          value: mysql://kimaipassword:89y63jdwe@127.0.0.1/kimai?charset=utf8mb4&serverVersion=5.7.44
+        - name: ADMINMAIL
+          value: gudemans@outlook.com
+        - name: ADMINPASS
+          value: changemeplease
+        - name: TRUSTED_HOSTS
+          value: nginx,localhost,127.0.0.1
+        ports:
+        - containerPort: 8001
+          name: kimai
+          protocol: TCP
+      - name: mysql
+        image: mysql:5.7.44
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kimai-database-pass
+              key: password
+        - name: MYSQL_DATABASE
+          value: kimai
+        - name: MYSQL_USER
+          value: kimaipassword
+        - name: MYSQL_PASSWORD
+          value: 89y63jdwe
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: kimai-database
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: kimai-database
+        nfs:
+          server: 192.168.0.1
+          path: /srv/data/kimai-data/

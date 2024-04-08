@@ -30,6 +30,7 @@ spec:
                 values:
                 - unbound
             topologyKey: kubernetes.io/hostname
+      restartPolicy: Always
       containers:
       - name: unbound
         image: ghcr.io/dragoncrafted87/alpine-unbound:2.0.2
@@ -60,7 +61,6 @@ spec:
         - name: hostfilelist
           mountPath: /config/hostfilelist.conf
           subPath: hostfilelist.conf
-      restartPolicy: Always
       volumes:
       - name: conf
         configMap:

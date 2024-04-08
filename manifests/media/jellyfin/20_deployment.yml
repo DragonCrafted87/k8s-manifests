@@ -20,7 +20,7 @@ spec:
       containers:
       - name: jellyfin
         image: jellyfin/jellyfin:10.8.4-1
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         env:
         - name: TZ
           value: America/Chicago
