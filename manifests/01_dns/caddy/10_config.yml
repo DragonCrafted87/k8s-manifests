@@ -1,0 +1,13 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddy-configuration
+  namespace: dns
+data:
+  Caddyfile: |2
+
+
+    foundry.stealthdragonland.net {
+        reverse_proxy 192.168.8.40
+    }

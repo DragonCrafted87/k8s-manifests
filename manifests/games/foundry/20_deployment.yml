@@ -36,9 +36,9 @@ spec:
       volumes:
       - name: server
         nfs:
-          server: 192.168.0.1
+          server: 192.168.0.200
           path: /srv/data/foundry/server
       - name: data
         nfs:
-          server: 192.168.0.1
+          server: 192.168.0.200
           path: /srv/data/foundry/data

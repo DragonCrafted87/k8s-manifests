@@ -132,3 +132,6 @@ data:
 
       local-data-ptr: "192.168.8.40 foundry.lan"
       local-data: "foundry.lan IN A 192.168.8.40"
+
+      local-data-ptr: "192.168.0.200 nfs.stealthdragonland.com"
+      local-data: "nfs.stealthdragonland.com IN A 192.168.0.200"

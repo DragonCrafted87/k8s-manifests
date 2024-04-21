@@ -1,0 +1,40 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: caddy-udp
+  namespace: dns
+  annotations:
+    metallb.universe.tf/allow-shared-ip: caddy
+spec:
+  selector:
+    app: caddy
+  ports:
+  - protocol: UDP
+    port: 443
+    name: http-udp
+    targetPort: 443
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.11
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: caddy-tcp
+  namespace: dns
+  annotations:
+    metallb.universe.tf/allow-shared-ip: caddy
+spec:
+  selector:
+    app: caddy
+  ports:
+  - protocol: TCP
+    port: 80
+    name: http-tcp
+    targetPort: 80
+  - protocol: TCP
+    port: 443
+    name: https-tcp
+    targetPort: 443
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.11

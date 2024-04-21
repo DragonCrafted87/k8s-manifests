@@ -64,5 +64,5 @@ spec:
       volumes:
       - name: kimai-database
         nfs:
-          server: 192.168.0.1
+          server: 192.168.0.200
           path: /srv/data/kimai-data/
