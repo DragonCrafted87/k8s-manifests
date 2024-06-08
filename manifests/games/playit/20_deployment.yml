@@ -20,7 +20,6 @@
 #       - name: playit-agent
 #         image: ghcr.io/dragoncrafted87/alpine-playit-agent:0.15.10
 #         imagePullPolicy: IfNotPresent
-
 #         livenessProbe:
 #           exec:
 #             command:

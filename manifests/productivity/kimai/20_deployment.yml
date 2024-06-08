@@ -19,7 +19,7 @@ spec:
         kubernetes.io/hostname: amd64node4.lan
       containers:
       - name: kimai
-        image: kimai/kimai2:apache-2.14.0-prod
+        image: kimai/kimai2:apache-2.17.0-prod
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true

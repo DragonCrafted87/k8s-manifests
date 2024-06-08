@@ -1,4 +1,5 @@
 # yamllint disable rule:indentation
+# yamllint disable rule:line-length
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -35,8 +36,8 @@ data:
       do-tcp: yes
 
       # IPv6 connectivity
-      do-ip6: yes
-      prefer-ip6: yes
+      do-ip6: no
+      prefer-ip6: no
       module-config: "dns64 validator iterator"
 
       # Use this only when you downloaded the list of primary root servers!
@@ -91,9 +92,6 @@ data:
       private-address: fd00::/8        # Unique local address (ULA) part of "fc00::/7", "/48" prefix group
       private-address: fe80::/10       # Link-local address (LLA)
 
-      # DNS Ad Blocking
-      include: /etc/unbound/blocklist.conf
-
       # Static host entries
       local-zone: "lan" transparent
       local-data-ptr: "127.0.0.1 localhost"
@@ -130,8 +128,52 @@ data:
       local-data-ptr: "192.168.8.20 hass.lan"
       local-data: "hass.lan IN A 192.168.8.20"
 
+      local-data-ptr: "192.168.8.30 media.lan"
+      local-data: "media.lan IN A 192.168.8.30"
+
       local-data-ptr: "192.168.8.40 foundry.lan"
       local-data: "foundry.lan IN A 192.168.8.40"
 
-      local-data-ptr: "192.168.0.200 nfs.stealthdragonland.com"
-      local-data: "nfs.stealthdragonland.com IN A 192.168.0.200"
+
+      # > cat /etc/unbound/local.d/stealthdragonland.conf
+      # auth-zone:
+      #         name: "stealthdragonland.net"
+      #         zonefile: /etc/unbound/zone.d/stealthdragonland.net
+
+      # > cat /etc/unbound/zone.d/stealthdragonland.net
+      # $ORIGIN stealthdragonland.net.
+      # $TTL 120
+      # @               IN  SOA   ns.stealthdragonland.net. admin.stealthdragonland.net. ( 2020091025 7200 3600 1209600 3600 )
+
+      # ;; NS Records
+      # @               IN  NS    ns
+
+      # ;; A Records
+      # @               IN  A   192.168.8.11
+      # *               IN  A   192.168.8.11
+      # ns              IN  A   192.168.0.1
+
+      # mc-vpp          IN  A   192.168.8.41
+      # mc-redstone     IN  A   192.168.8.42
+      # hass            IN  A   192.168.8.20
+      # media           IN  A   192.168.8.30
+      # time            IN  A   192.168.8.50
+
+      # printer         IN  A   192.168.0.6
+      # weatherhub      IN  A   192.168.0.102
+      # primary-ap      IN  A   192.168.0.20
+
+      # amd64node2      IN  A   192.168.0.51
+      # amd64node4      IN  A   192.168.0.53
+      # amd64node5      IN  A   192.168.0.54
+
+      # castellan       IN  A   192.168.0.200
+      # dracolisk       IN  A   192.168.0.201
+
+
+      # ;; CNAME Records
+      # www             IN  CNAME stealthdragonland.net.
+
+      # ;; SRV Records
+      # _minecraft._tcp.mc-vpp.stealthdragonland.net.  1  IN  SRV  1 1 25565 mc-vpp.stealthdragonland.net.
+      # _minecraft._tcp.mc-redstone.stealthdragonland.net.  1  IN  SRV  1 1 25565 mc-redstone.stealthdragonland.net.

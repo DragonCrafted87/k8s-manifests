@@ -20,16 +20,8 @@ spec:
       labels:
         role: caddy
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: role
-                operator: In
-                values:
-                - caddy
-            topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        kubernetes.io/hostname: amd64node5.lan
       restartPolicy: Always
       containers:
       - name: caddy

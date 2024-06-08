@@ -5,9 +5,25 @@ metadata:
   name: caddy-configuration
   namespace: dns
 data:
-  Caddyfile: |2
+  Caddyfile: |
+    stealthdragonland.net {
+    }
 
+    dragoncrafted87.dev {
+    }
 
     foundry.stealthdragonland.net {
-        reverse_proxy 192.168.8.40
+      reverse_proxy 192.168.8.40
+    }
+
+    media.stealthdragonland.net {
+      reverse_proxy 192.168.8.30:80
+    }
+
+    time.stealthdragonland.net {
+      reverse_proxy 192.168.8.50:80
+    }
+
+    weatherhub.stealthdragonland.net {
+      reverse_proxy 192.168.0.102:80
     }

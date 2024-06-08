@@ -8,7 +8,7 @@ metadata:
     metallb.universe.tf/allow-shared-ip: caddy
 spec:
   selector:
-    app: caddy
+    role: caddy
   ports:
   - protocol: UDP
     port: 443
@@ -26,7 +26,7 @@ metadata:
     metallb.universe.tf/allow-shared-ip: caddy
 spec:
   selector:
-    app: caddy
+    role: caddy
   ports:
   - protocol: TCP
     port: 80
