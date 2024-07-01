@@ -57,9 +57,9 @@ spec:
             path: Caddyfile
       - name: data
         nfs:
-          server: 192.168.0.200
+          server: 192.168.0.51
           path: /srv/data/caddy/data
       - name: config
         nfs:
-          server: 192.168.0.200
+          server: 192.168.0.51
           path: /srv/data/caddy/config

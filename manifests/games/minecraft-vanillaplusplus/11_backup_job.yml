@@ -34,7 +34,7 @@ spec:
           volumes:
           - name: minecraft
             nfs:
-              server: 192.168.0.200
+              server: 192.168.0.51
               path: /srv/data/minecraft-vanillaplusplus
           - name: backup
             flexVolume:
@@ -42,5 +42,5 @@ spec:
               secretRef:
                 name: cifs-secret
               options:
-                networkPath: //192.168.8.2/Backups/K8s/
+                networkPath: //calligraphy-wyrm.stealthdragonland.net/Backups/K8s/
                 mountOptions: dir_mode=0755,file_mode=0644,noperm

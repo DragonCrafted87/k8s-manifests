@@ -56,5 +56,5 @@ spec:
       volumes:
       - name: home-assistant
         nfs:
-          server: 192.168.0.200
+          server: 192.168.0.51
           path: /srv/data/home-assistant

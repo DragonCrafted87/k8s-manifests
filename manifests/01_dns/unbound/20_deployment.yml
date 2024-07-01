@@ -61,6 +61,12 @@ spec:
         - name: hostfilelist
           mountPath: /config/hostfilelist.conf
           subPath: hostfilelist.conf
+        - name: stealthdragonlandconf
+          mountPath: /etc/unbound/local.d/stealthdragonland.conf
+          subPath: stealthdragonland.conf
+        - name: stealthdragonlandzone
+          mountPath: /etc/unbound/zone.d/stealthdragonland.net
+          subPath: stealthdragonland.net
       volumes:
       - name: conf
         configMap:
@@ -80,3 +86,15 @@ spec:
           items:
           - key: hostfilelist.conf
             path: hostfilelist.conf
+      - name: stealthdragonlandconf
+        configMap:
+          name: unbound-configuration
+          items:
+          - key: stealthdragonland.conf
+            path: stealthdragonland.conf
+      - name: stealthdragonlandzone
+        configMap:
+          name: unbound-configuration
+          items:
+          - key: stealthdragonland.net
+            path: stealthdragonland.net

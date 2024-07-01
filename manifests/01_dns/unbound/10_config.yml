@@ -27,10 +27,19 @@ data:
     server:
       # If no logfile is specified, syslog is used
       # logfile: "/var/log/unbound/unbound.log"
+      # Logging Options
+      use-syslog: yes
+      log-time-ascii: yes
       verbosity: 1
 
-      interface: 127.0.0.1
-      port: 53
+      # Listen on all interfaces
+      interface-automatic: yes
+      interface: 0.0.0.0
+
+      # Allow access from everywhere
+      access-control: 0.0.0.0/0 allow
+
+      # General connectivity
       do-ip4: yes
       do-udp: yes
       do-tcp: yes
@@ -92,88 +101,43 @@ data:
       private-address: fd00::/8        # Unique local address (ULA) part of "fc00::/7", "/48" prefix group
       private-address: fe80::/10       # Link-local address (LLA)
 
-      # Static host entries
-      local-zone: "lan" transparent
-      local-data-ptr: "127.0.0.1 localhost"
-      local-data: "localhost A 127.0.0.1"
-      local-data: "localhost.lan A 127.0.0.1"
-      local-data-ptr: "::1 localhost"
-      local-data: "localhost AAAA ::1"
-      local-data: "localhost.lan AAAA ::1"
+    # Import any local configurations
+    include: "/etc/unbound/local.d/*.conf"
+  stealthdragonland.conf: |
+    auth-zone:
+            name: "stealthdragonland.net"
+            zonefile: /etc/unbound/zone.d/stealthdragonland.net
+  stealthdragonland.net: |
+    $ORIGIN stealthdragonland.net.
+    $TTL 120
+    @                       IN  SOA   ns.stealthdragonland.net. admin.stealthdragonland.net. ( 2020091025 7200 3600 1209600 3600 )
 
-      local-data-ptr: "192.168.0.1 dragonfire.lan"
-      local-data: "dragonfire.lan A 192.168.0.1"
-      local-data: "dragonfire A 192.168.0.1"
+    ;; NS Records
+    @                       IN  NS    ns
 
-      local-data-ptr: "192.168.0.10 dragonbase.lan"
-      local-data: "dragonbase.lan IN A 192.168.0.10"
+    ;; A Records
+    @                       IN  A   192.168.8.11
+    *                       IN  A   192.168.8.11
+    ns                      IN  A   192.168.0.1
 
-      local-data-ptr: "192.168.0.51 amd64node2.lan"
-      local-data: "amd64node2.lan IN A 192.168.0.51"
-      local-data-ptr: "192.168.0.53 amd64node4.lan"
-      local-data: "amd64node4.lan IN A 192.168.0.53"
-      local-data-ptr: "192.168.0.54 amd64node5.lan"
-      local-data: "amd64node5.lan IN A 192.168.0.54"
+    mc-vpp                  IN  A   192.168.8.41
+    mc-redstone             IN  A   192.168.8.42
+    hass                    IN  A   192.168.8.20
 
-      local-data-ptr: "192.168.0.101 weatherstation.lan"
-      local-data: "weatherstation.lan IN A 192.168.0.101"
-      local-data-ptr: "192.168.0.20 hallway_ap.lan"
-      local-data: "hallway_ap.lan IN A 192.168.0.20"
-      local-data-ptr: "192.168.0.6 dragonprinter.lan"
-      local-data: "dragonprinter.lan IN A 192.168.0.6"
+    printer                 IN  A   192.168.0.6
+    primary-ap              IN  A   192.168.0.20
 
-      local-data-ptr: "192.168.8.2 dragondata.lan"
-      local-data: "dragondata.lan IN A 192.168.8.2"
+    amd64node2              IN  A   192.168.0.51
+    amd64node4              IN  A   192.168.0.53
+    amd64node5              IN  A   192.168.0.54
 
-      local-data-ptr: "192.168.8.20 hass.lan"
-      local-data: "hass.lan IN A 192.168.8.20"
+    calligraphy-wyrm        IN  A   192.168.0.100
+    castellan               IN  A   192.168.0.101
+    dracolisk               IN  A   192.168.0.201
 
-      local-data-ptr: "192.168.8.30 media.lan"
-      local-data: "media.lan IN A 192.168.8.30"
+    ;; CNAME Records
+    www             IN  CNAME stealthdragonland.net.
 
-      local-data-ptr: "192.168.8.40 foundry.lan"
-      local-data: "foundry.lan IN A 192.168.8.40"
-
-
-      # > cat /etc/unbound/local.d/stealthdragonland.conf
-      # auth-zone:
-      #         name: "stealthdragonland.net"
-      #         zonefile: /etc/unbound/zone.d/stealthdragonland.net
-
-      # > cat /etc/unbound/zone.d/stealthdragonland.net
-      # $ORIGIN stealthdragonland.net.
-      # $TTL 120
-      # @               IN  SOA   ns.stealthdragonland.net. admin.stealthdragonland.net. ( 2020091025 7200 3600 1209600 3600 )
-
-      # ;; NS Records
-      # @               IN  NS    ns
-
-      # ;; A Records
-      # @               IN  A   192.168.8.11
-      # *               IN  A   192.168.8.11
-      # ns              IN  A   192.168.0.1
-
-      # mc-vpp          IN  A   192.168.8.41
-      # mc-redstone     IN  A   192.168.8.42
-      # hass            IN  A   192.168.8.20
-      # media           IN  A   192.168.8.30
-      # time            IN  A   192.168.8.50
-
-      # printer         IN  A   192.168.0.6
-      # weatherhub      IN  A   192.168.0.102
-      # primary-ap      IN  A   192.168.0.20
-
-      # amd64node2      IN  A   192.168.0.51
-      # amd64node4      IN  A   192.168.0.53
-      # amd64node5      IN  A   192.168.0.54
-
-      # castellan       IN  A   192.168.0.200
-      # dracolisk       IN  A   192.168.0.201
-
-
-      # ;; CNAME Records
-      # www             IN  CNAME stealthdragonland.net.
-
-      # ;; SRV Records
-      # _minecraft._tcp.mc-vpp.stealthdragonland.net.  1  IN  SRV  1 1 25565 mc-vpp.stealthdragonland.net.
-      # _minecraft._tcp.mc-redstone.stealthdragonland.net.  1  IN  SRV  1 1 25565 mc-redstone.stealthdragonland.net.
+    ;; SRV Records
+    _minecraft._tcp.mc-vpp.stealthdragonland.net.  1  IN  SRV  1 1 25565 mc-vpp.stealthdragonland.net.
+    _minecraft._tcp.mc-redstone.stealthdragonland.net.  1  IN  SRV  1 1 25565 mc-redstone.stealthdragonland.net.
