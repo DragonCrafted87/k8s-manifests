@@ -15,8 +15,6 @@ spec:
       labels:
         role: jellyfin
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: amd64node4.lan
       containers:
       - name: jellyfin
         image: jellyfin/jellyfin:10.9.3.20240527-001040
@@ -45,7 +43,7 @@ spec:
           secretRef:
             name: cifs-secret
           options:
-            networkPath: //192.168.8.2/Storage/Media/
+            networkPath: //calligraphy-wyrm.stealthdragonland.net/Storage/Media/
             mountOptions: dir_mode=0755,file_mode=0644,noperm
       - name: configuration
         nfs:
