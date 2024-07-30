@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: jellyfin
-        image: jellyfin/jellyfin:10.9.3.20240527-001040
+        image: jellyfin/jellyfin:10.9.8
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
