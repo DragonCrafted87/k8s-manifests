@@ -34,7 +34,7 @@ spec:
           volumes:
           - name: foundry
             nfs:
-              server: 192.168.0.51
+              server: castellan.stealthdragonland.net
               path: /srv/data/foundry/data
           - name: backup
             flexVolume:

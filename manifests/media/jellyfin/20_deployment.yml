@@ -47,5 +47,5 @@ spec:
             mountOptions: dir_mode=0755,file_mode=0644,noperm
       - name: configuration
         nfs:
-          server: 192.168.0.51
+          server: castellan.stealthdragonland.net
           path: /srv/data/jellyfin-config/

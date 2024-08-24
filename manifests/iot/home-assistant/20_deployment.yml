@@ -56,5 +56,5 @@ spec:
       volumes:
       - name: home-assistant
         nfs:
-          server: 192.168.0.51
+          server: castellan.stealthdragonland.net
           path: /srv/data/home-assistant
