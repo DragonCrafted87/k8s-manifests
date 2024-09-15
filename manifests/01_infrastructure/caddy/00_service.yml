@@ -3,7 +3,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: caddy-udp
-  namespace: dns
+  namespace: infrastructure
   annotations:
     metallb.universe.tf/allow-shared-ip: caddy
 spec:
@@ -21,7 +21,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: caddy-tcp
-  namespace: dns
+  namespace: infrastructure
   annotations:
     metallb.universe.tf/allow-shared-ip: caddy
 spec:

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: caddy-configuration
-  namespace: dns
+  namespace: infrastructure
 data:
   Caddyfile: |
     stealthdragonland.net {
@@ -15,15 +15,15 @@ data:
     foundry.stealthdragonland.net {
       reverse_proxy 192.168.8.40
     }
-
     media.stealthdragonland.net {
       reverse_proxy 192.168.8.30:80
     }
-
+    prayers.stealthdragonland.net {
+      reverse_proxy 192.168.8.31:80
+    }
     time.stealthdragonland.net {
       reverse_proxy 192.168.8.50:80
     }
-
     weatherhub.stealthdragonland.net {
       reverse_proxy 192.168.0.102:80
     }

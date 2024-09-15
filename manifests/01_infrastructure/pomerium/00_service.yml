@@ -1,0 +1,36 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: pomerium-udp
+  namespace: infrastructure
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pomerium
+spec:
+  selector:
+    role: pomerium
+  ports:
+  - protocol: UDP
+    port: 443
+    name: http-udp
+    targetPort: 443
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.12
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: pomerium-tcp
+  namespace: infrastructure
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pomerium
+spec:
+  selector:
+    role: pomerium
+  ports:
+  - protocol: TCP
+    port: 443
+    name: https-tcp
+    targetPort: 443
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.12

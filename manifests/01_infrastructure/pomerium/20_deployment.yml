@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: dns
-  name: caddy
+  namespace: infrastructure
+  name: pomerium
   labels:
-    app: caddy
+    app: pomerium
 spec:
   replicas: 1
   selector:
     matchLabels:
-      role: caddy
+      role: pomerium
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -18,22 +18,31 @@ spec:
   template:
     metadata:
       labels:
-        role: caddy
+        role: pomerium
     spec:
       nodeSelector:
         kubernetes.io/hostname: amd64node5.lan
       restartPolicy: Always
       containers:
-      - name: caddy
-        image: caddy:2.7.6-alpine
+      - name: pomerium
+        image: pomerium/pomerium:nonroot-v0.26.1
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
           value: America/Chicago
+        # livenessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: 8081
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 20
+        # readinessProbe:
+        #   httpGet:
+        #     path: /readyz
+        #     port: 8081
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 10
         ports:
-        - containerPort: 80
-          name: http-tcp
-          protocol: TCP
         - containerPort: 443
           name: https-tcp
           protocol: TCP
@@ -42,8 +51,8 @@ spec:
           protocol: UDP
         volumeMounts:
         - name: conf
-          mountPath: /etc/caddy/Caddyfile
-          subPath: Caddyfile
+          mountPath: /pomerium/config.yaml
+          subPath: config.yaml
         - name: data
           mountPath: /data
         - name: config
@@ -51,15 +60,15 @@ spec:
       volumes:
       - name: conf
         configMap:
-          name: caddy-configuration
+          name: pomerium-configuration
           items:
-          - key: Caddyfile
-            path: Caddyfile
+          - key: config.yaml
+            path: config.yaml
       - name: data
         nfs:
           server: castellan.stealthdragonland.net
-          path: /srv/data/caddy/data
+          path: /srv/data/pomerium/data
       - name: config
         nfs:
           server: castellan.stealthdragonland.net
-          path: /srv/data/caddy/config
+          path: /srv/data/pomerium/config

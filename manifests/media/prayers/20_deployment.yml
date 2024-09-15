@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: media
+  name: prayers
+  labels:
+    app: prayers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: prayers
+  template:
+    metadata:
+      labels:
+        role: prayers
+    spec:
+      containers:
+      - name: prayers
+        image: ghcr.io/jitesoft/lighttpd:1.4.76
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 5
+        ports:
+        - name: server
+          containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: configuration
+          mountPath: /var/www/html/
+      volumes:
+      - name: configuration
+        nfs:
+          server: castellan.stealthdragonland.net
+          path: /srv/data/prayers/

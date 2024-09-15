@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: unbound-configuration
-  namespace: dns
+  namespace: infrastructure
 data:
   domainlist.conf: |
     https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt

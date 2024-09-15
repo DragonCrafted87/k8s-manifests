@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: infrastructure
+  name: pomerium-verify
+  labels:
+    app: pomerium-verify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: pomerium-verify
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        role: pomerium-verify
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: amd64node5.lan
+      restartPolicy: Always
+      containers:
+      - name: pomerium-verify
+        image: pomerium/verify:sha-fda1b5b
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        ports:
+        - containerPort: 8000
+          name: http-tcp
+          protocol: TCP

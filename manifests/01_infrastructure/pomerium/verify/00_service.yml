@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: pomerium-verify-tcp
+  namespace: infrastructure
+  annotations:
+    metallb.universe.tf/allow-shared-ip: pomerium-verify
+spec:
+  selector:
+    role: pomerium-verify
+  ports:
+  - protocol: TCP
+    port: 80
+    name: http-tcp
+    targetPort: 8000
+  type: LoadBalancer
+  loadBalancerIP: 192.168.8.13

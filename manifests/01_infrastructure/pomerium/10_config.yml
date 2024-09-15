@@ -1,0 +1,25 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pomerium-configuration
+  namespace: infrastructure
+data:
+  config.yaml: |
+    authenticate_service_url: https://authenticate.pomerium.app
+
+    routes:
+      - from: https://verify.stealthdragonland.net
+        to: http://192.168.8.13
+        policy:
+          - allow:
+              or:
+                - email:
+                    is: gudemans@outlook.com
+      - from: https://foundry.stealthdragonland.net
+        to: http://192.168.8.40
+        policy:
+          - allow:
+              or:
+                - email:
+                    is: gudemans@outlook.com
