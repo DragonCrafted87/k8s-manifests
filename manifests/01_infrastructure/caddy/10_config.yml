@@ -19,6 +19,7 @@ data:
       reverse_proxy 192.168.8.30:80
     }
     prayers.stealthdragonland.net {
+      redir / /en/ 301
       reverse_proxy 192.168.8.31:80
     }
     time.stealthdragonland.net {
