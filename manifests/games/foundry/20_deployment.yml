@@ -20,7 +20,7 @@ spec:
       dnsConfig:
         options:
         - name: timeout
-          value: '100'
+          value: '10'
         - name: attempts
           value: '5'
         - name: ndots
