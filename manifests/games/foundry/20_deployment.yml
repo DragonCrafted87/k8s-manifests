@@ -17,6 +17,14 @@ spec:
     spec:
       securityContext:
         fsGroup: 1000
+      dnsConfig:
+        options:
+        - name: timeout
+          value: '100'
+        - name: attempts
+          value: '5'
+        - name: ndots
+          value: '1'
       containers:
       - name: foundry
         image: ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner:2.0.1
