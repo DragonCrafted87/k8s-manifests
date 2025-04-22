@@ -26,7 +26,7 @@ spec:
         - name: attempts
           value: '5'
         - name: ndots
-          value: '2'
+          value: '1'
       containers:
       - name: minecraft-vpp
         image: ghcr.io/dragoncrafted87/alpine-minecraft:2.0.0
