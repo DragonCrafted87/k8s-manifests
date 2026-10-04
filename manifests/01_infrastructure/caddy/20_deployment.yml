@@ -20,8 +20,6 @@ spec:
       labels:
         role: caddy
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: amd64node5.lan
       restartPolicy: Always
       containers:
       - name: caddy

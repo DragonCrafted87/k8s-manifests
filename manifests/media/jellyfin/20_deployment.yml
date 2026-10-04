@@ -38,13 +38,8 @@ spec:
           mountPath: /config
       volumes:
       - name: media
-        flexVolume:
-          driver: fstab/cifs
-          secretRef:
-            name: cifs-secret
-          options:
-            networkPath: //calligraphy-wyrm.stealthdragonland.net/Storage/Media/
-            mountOptions: dir_mode=0755,file_mode=0644,noperm
+        persistentVolumeClaim:
+          claimName: calligraphy-media
       - name: configuration
         nfs:
           server: castellan.stealthdragonland.net

@@ -1,59 +1,38 @@
-return
+#!/bin/sh
+# OpenMandriva install for the single k3s server roost-drake
+# at 192.168.0.54. Workload apply is a later step.
+set -eu
 
-sudo apt-get install --assume-yes nfs-common cifs-utils
+hostnamectl set-hostname roost-drake.stealthdragonland.net
+if grep -q '^127\.0\.1\.1[[:space:]]' /etc/hosts; then
+    sed -i 's/^127\.0\.1\.1[[:space:]].*/127.0.1.1 roost-drake.stealthdragonland.net roost-drake/' /etc/hosts
+else
+    printf '%s\n' '127.0.1.1 roost-drake.stealthdragonland.net roost-drake' >> /etc/hosts
+fi
+hostname -f
 
-sudo snap install microk8s --classic --channel=1.27/stable
+dnf info nfs-utils
+dnf info cifs-utils
+dnf install -y nfs-utils cifs-utils
 
-sudo apt-get install iptables-persistent
-sudo iptables -P FORWARD ACCEPT
-sudo iptables-save
-sudo iptables-legacy-save
+if command -v firewall-cmd >/dev/null 2>&1; then
+    firewall-cmd --permanent --add-port=6443/tcp
+    firewall-cmd --permanent --add-port=10250/tcp
+    firewall-cmd --permanent --add-port=8472/udp
+    firewall-cmd --reload
+fi
 
-sudo usermod -a -G microk8s $USER
-sudo chown -f -R $USER ~/.kube
+curl -sfL https://get.k3s.io | sh -s - server \
+    --disable traefik \
+    --disable servicelb \
+    --node-name roost-drake \
+    --tls-san roost-drake.stealthdragonland.net \
+    --resolv-conf /run/systemd/resolve/resolv.conf \
+    --write-kubeconfig-mode 644
 
-# change k8s version
-sudo snap refresh microk8s --classic --channel=1.27/stable
+/usr/local/bin/k3s kubectl get nodes
 
-# reset snap
-snap list
-sudo snap remove microk8s
-sudo snap remove snapd
-
-sudo apt autoremove --assume-yes --purge snapd gnome-software-plugin-snap
-
-rm -rf ~/snap
-sudo rm -rf /root/snap
-sudo rm -rf /snap
-sudo rm -rf /var/snap
-sudo rm -rf /var/lib/snapd
-sudo umount /var/snap
-
-sudo mount -a
-sudo apt install snapd --assume-yes
-
-# first node
-microk8s status --wait-ready
-
-microk8s enable dns
-microk8s enable dashboard
-microk8s enable metallb:192.168.8.1-192.168.15.255
-
-#get command to join other nodes
-microk8s add-node
-
-# other nodes
-microk8s join ***************************************************
-
-# get the .kube/config file
-microk8s config
-
-# apply all the manifests
-kubectl apply -f . --recursive
-
-
-
-
-https://discuss.kubernetes.io/t/microk8s-ipv6-dualstack-how-to/14507
-
-kubectl apply -f https://docs.projectcalico.org/archive/v3.13/manifests/calicoctl.yaml
+# MetalLB v0.16.0, then manifests/01_infrastructure/metallb/pool.yml.
+# SMB CSI v1.20.3, then manifests/01_infrastructure/smb/volumes.yml.
+# Apply the rest of manifests/ only after those two are Ready.
+# Do not apply the later/ directory.
