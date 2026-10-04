@@ -30,7 +30,7 @@ curl -sfL https://get.k3s.io | sh -s - server \
     --resolv-conf /run/systemd/resolve/resolv.conf \
     --write-kubeconfig-mode 644
 
-k3s kubectl get nodes
+/usr/local/bin/k3s kubectl get nodes
 
 # MetalLB v0.16.0, then manifests/01_infrastructure/metallb/pool.yml.
 # SMB CSI v1.20.3, then manifests/01_infrastructure/smb/volumes.yml.
