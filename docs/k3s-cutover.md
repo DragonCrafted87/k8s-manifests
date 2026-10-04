@@ -58,7 +58,7 @@ Public DNS should **not** publish these as A records to `192.168.0.x`. Split-hor
 
 - `dhcp-host` `name=` → `roost-drake` on `.54` and `ward-drake` on `.51`, same MACs. `ward-drake` is not a k3s node name.
 - `dhcp.@domain` A record for `roost-drake.stealthdragonland.net` → `192.168.0.54`, and for `ward-drake.stealthdragonland.net` → `192.168.0.51`.
-- Remove `amd64node*.lan` domain entries and Unbound `local-zone: "lan." static`.
+- Remove `amd64node*.lan` domain entries only after `.51`, `.53`, and `.54` are powered off. Leave Unbound `local-zone: stealthdragonland.net transparent`.
 - Do **not** set `local-zone: "stealthdragonland.net." static` (breaks AAAA / public names). Keep `typetransparent`.
 - Drop extra `domain_insecure` / `private_domain` `'lan'` if nothing else uses `.lan`.
 - `uci commit dhcp; service dnsmasq restart; service unbound restart`
