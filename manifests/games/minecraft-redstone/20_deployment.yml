@@ -15,8 +15,6 @@ spec:
       labels:
         role: minecraft-redstone
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: amd64node5.lan
       securityContext:
         fsGroup: 1000
       dnsConfig:

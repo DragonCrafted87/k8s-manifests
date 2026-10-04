@@ -15,8 +15,6 @@ spec:
       labels:
         role: kimai
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: amd64node4.lan
       containers:
       - name: kimai
         image: kimai/kimai2:apache-2.17.0-prod

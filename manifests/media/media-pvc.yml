@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: calligraphy-media
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: smb-static
+  volumeName: calligraphy-media
+  resources:
+    requests:
+      storage: 1Ti
