@@ -1,2 +1,3 @@
-*secret.yml
 .kobold/
+*secret.yml
+docs/plans/**
