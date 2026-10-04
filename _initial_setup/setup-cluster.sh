@@ -4,8 +4,11 @@
 set -eu
 
 hostnamectl set-hostname roost-drake.stealthdragonland.net
-grep -q 'roost-drake.stealthdragonland.net' /etc/hosts || \
+if grep -q '^127\.0\.1\.1[[:space:]]' /etc/hosts; then
+    sed -i 's/^127\.0\.1\.1[[:space:]].*/127.0.1.1 roost-drake.stealthdragonland.net roost-drake/' /etc/hosts
+else
     printf '%s\n' '127.0.1.1 roost-drake.stealthdragonland.net roost-drake' >> /etc/hosts
+fi
 hostname -f
 
 dnf info nfs-utils
@@ -24,6 +27,7 @@ curl -sfL https://get.k3s.io | sh -s - server \
     --disable servicelb \
     --node-name roost-drake \
     --tls-san roost-drake.stealthdragonland.net \
+    --resolv-conf /run/systemd/resolve/resolv.conf \
     --write-kubeconfig-mode 644
 
 k3s kubectl get nodes
