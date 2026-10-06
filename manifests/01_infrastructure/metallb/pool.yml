@@ -1,3 +1,4 @@
+---
 # Applied after the MetalLB native manifest from setup-cluster.sh.
 # The live microk8s pool on 2026-10-03 was 192.168.8.1-192.168.15.255.
 # Every Service address in this repo sits in 192.168.8.0/24, which is
@@ -9,7 +10,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - 192.168.8.0/24
+  - 192.168.8.0/24
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -18,4 +19,4 @@ metadata:
   namespace: metallb-system
 spec:
   ipAddressPools:
-    - lan
+  - lan
