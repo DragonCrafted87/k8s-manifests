@@ -25,6 +25,9 @@ data:
     time.stealthdragonland.net {
       reverse_proxy 192.168.8.50:80
     }
+    kitchen.stealthdragonland.net {
+      reverse_proxy 192.168.8.51:80
+    }
     weatherhub.stealthdragonland.net {
       reverse_proxy 192.168.0.102:80
     }

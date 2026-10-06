@@ -125,6 +125,7 @@ Known LB IPs from the old cluster (re-pin these):
 | minecraft-vpp (+ udp) | 192.168.8.41 |
 | minecraft-redstone    | 192.168.8.42 |
 | kimai-tcp             | 192.168.8.50 |
+| kitchenowl-tcp        | 192.168.8.51 |
 
 Spare VIP `192.168.8.10` can run a second Caddy if old and new clusters overlap for an hour; flip socat when ready.
 
