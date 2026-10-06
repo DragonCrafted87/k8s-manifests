@@ -1,3 +1,6 @@
-.kobold/
+.kobold/bounds.local.yaml
+.kobold/trail.md
+.kobold/local/
 *secret.yml
 docs/plans/**
+docs/specs/**
