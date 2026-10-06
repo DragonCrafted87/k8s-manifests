@@ -5,7 +5,7 @@ metadata:
   namespace: storage
 spec:
   accessModes:
-    - ReadWriteMany
+  - ReadWriteMany
   storageClassName: smb-static
   volumeName: calligraphy-backups
   resources:
