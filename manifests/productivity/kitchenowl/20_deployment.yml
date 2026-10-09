@@ -53,5 +53,5 @@ spec:
       volumes:
       - name: data
         nfs:
-          server: castellan.stealthdragonland.net
+          server: hoard-drake.stealthdragonland.net
           path: /srv/data/kitchenowl

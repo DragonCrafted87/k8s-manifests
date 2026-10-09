@@ -62,5 +62,5 @@ spec:
       volumes:
       - name: kimai-database
         nfs:
-          server: castellan.stealthdragonland.net
+          server: hoard-drake.stealthdragonland.net
           path: /srv/data/kimai-data/

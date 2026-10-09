@@ -34,7 +34,7 @@ spec:
           volumes:
           - name: foundry
             nfs:
-              server: castellan.stealthdragonland.net
+              server: hoard-drake.stealthdragonland.net
               path: /srv/data/foundry/data
           - name: backup
             persistentVolumeClaim:

@@ -37,5 +37,5 @@ spec:
       volumes:
       - name: configuration
         nfs:
-          server: castellan.stealthdragonland.net
+          server: hoard-drake.stealthdragonland.net
           path: /srv/data/prayers/
