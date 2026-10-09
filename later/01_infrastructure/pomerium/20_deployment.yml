@@ -64,9 +64,9 @@ spec:
             path: config.yaml
       - name: data
         nfs:
-          server: castellan.stealthdragonland.net
+          server: hoard-drake.stealthdragonland.net
           path: /srv/data/pomerium/data
       - name: config
         nfs:
-          server: castellan.stealthdragonland.net
+          server: hoard-drake.stealthdragonland.net
           path: /srv/data/pomerium/config
