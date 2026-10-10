@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: host-status
+  namespace: iot
+  labels:
+    app.kubernetes.io/name: host-status
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: host-status
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: host-status
+    spec:
+      tolerations:
+      - operator: Exists
+      containers:
+      - name: host-status
+        image: ghcr.io/dragoncrafted87/alpine-host-status:edge
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: HOST_STATUS_ROOT
+          value: /host
+        - name: HOST_STATUS_BROKER
+          value: 192.168.8.21
+        - name: HOST_STATUS_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        securityContext:
+          privileged: false
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+          type: Directory
+      - name: sys
+        hostPath:
+          path: /sys
+          type: Directory
