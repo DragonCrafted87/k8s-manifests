@@ -42,6 +42,9 @@ spec:
         - name: conf
           mountPath: /etc/caddy/Caddyfile
           subPath: Caddyfile
+        - name: vscode-md
+          mountPath: /srv/vscode-md
+          readOnly: true
         - name: data
           mountPath: /data
         - name: config
@@ -53,6 +56,12 @@ spec:
           items:
           - key: Caddyfile
             path: Caddyfile
+      - name: vscode-md
+        configMap:
+          name: vscode-markdown
+          items:
+          - key: vscode-markdown.css
+            path: vscode-markdown.css
       - name: data
         nfs:
           server: hoard-drake.stealthdragonland.net

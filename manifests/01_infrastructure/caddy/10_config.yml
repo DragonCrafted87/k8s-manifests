@@ -31,3 +31,8 @@ data:
     weatherhub.stealthdragonland.net {
       reverse_proxy 192.168.0.102:80
     }
+    vscode-md.stealthdragonland.net {
+      root * /srv/vscode-md
+      file_server
+      header Cache-Control "public, max-age=300"
+    }
