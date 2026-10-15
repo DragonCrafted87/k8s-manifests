@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: productivity
+  name: vikunja
+  labels:
+    app: vikunja
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: vikunja
+  template:
+    metadata:
+      labels:
+        role: vikunja
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: vikunja
+        image: vikunja/vikunja:2.7.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: VIKUNJA_SERVICE_TIMEZONE
+          value: America/Chicago
+        - name: VIKUNJA_SERVICE_PUBLICURL
+          value: https://tasks.stealthdragonland.net/
+        - name: VIKUNJA_SERVICE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: vikunja-secret
+              key: VIKUNJA_SERVICE_SECRET
+        ports:
+        - name: web
+          containerPort: 3456
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /api/v1/info
+            port: web
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/v1/info
+            port: web
+          initialDelaySeconds: 20
+          periodSeconds: 20
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: files
+          mountPath: /app/vikunja/files
+      volumes:
+      - name: db
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/vikunja/db
+      - name: files
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/vikunja/files
