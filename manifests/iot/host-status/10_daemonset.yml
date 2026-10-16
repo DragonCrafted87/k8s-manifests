@@ -18,7 +18,7 @@ spec:
       - operator: Exists
       containers:
       - name: host-status
-        image: ghcr.io/dragoncrafted87/alpine-host-status:edge
+        image: ghcr.io/dragoncrafted87/alpine-host-status:2.1.0
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
