@@ -7,7 +7,7 @@ metadata:
 data:
   vscode-markdown.css: |
     body {
-      max-width: 46rem;
+      max-width: 80ch;
       margin: 0 auto;
       padding: 0 1.25rem 3rem;
       font-family: Aptos, Calibri, "Book Antiqua", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
