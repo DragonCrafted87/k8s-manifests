@@ -27,7 +27,7 @@ spec:
           value: '1'
       containers:
       - name: foundry
-        image: ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner:2.0.1
+        image: ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner:2.1.0
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
