@@ -1,5 +1,5 @@
 ---
-# Applied after the MetalLB native manifest from setup-cluster.sh.
+# Applied after the MetalLB native manifest.
 # The live microk8s pool on 2026-10-03 was 192.168.8.1-192.168.15.255.
 # Every Service address in this repo sits in 192.168.8.0/24, which is
 # the pool the cutover note keeps.

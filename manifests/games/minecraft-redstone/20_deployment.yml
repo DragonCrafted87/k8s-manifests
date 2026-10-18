@@ -15,6 +15,13 @@ spec:
       labels:
         role: minecraft-redstone
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: homelab.stealthdragonland.net/subrole-nfs-server
+                operator: DoesNotExist
       securityContext:
         fsGroup: 1000
       dnsConfig:
