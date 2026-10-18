@@ -15,6 +15,13 @@ spec:
       labels:
         role: foundry
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: homelab.stealthdragonland.net/subrole-nfs-server
+                operator: DoesNotExist
       # Foundry signs the license to os.hostname(). A generated pod name fails that check.
       hostname: foundry
       securityContext:
