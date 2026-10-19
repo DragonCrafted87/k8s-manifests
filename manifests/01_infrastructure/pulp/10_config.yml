@@ -1,0 +1,27 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulp-settings
+  namespace: infrastructure
+data:
+  settings.py: |
+    CONTENT_ORIGIN = "https://pulp.stealthdragonland.net"
+    CSRF_TRUSTED_ORIGINS = ["https://pulp.stealthdragonland.net"]
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "pulp",
+            "USER": "pulp",
+            "HOST": "pulp-postgres",
+            "PORT": "5432",
+            "CONN_MAX_AGE": 0,
+        }
+    }
+    CACHE_ENABLED = True
+    REDIS_HOST = "pulp-redis"
+    REDIS_PORT = 6379
+    ENABLED_PLUGINS = ["pulp_rpm", "pulp_container"]
+    ANALYTICS = False
+    TOKEN_AUTH_DISABLED = True
+    STATIC_ROOT = "/var/lib/operator/static/"

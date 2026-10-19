@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: infrastructure
+  name: authentik-postgres
+  labels:
+    app: authentik-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: authentik-postgres
+  template:
+    metadata:
+      labels:
+        role: authentik-postgres
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      containers:
+      - name: postgres
+        image: postgres:16.15
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: POSTGRES_USER
+          value: authentik
+        - name: POSTGRES_DB
+          value: authentik
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authentik-database
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - name: postgres
+          containerPort: 5432
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command: [pg_isready, -U, authentik, -d, authentik]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/authentik/postgres

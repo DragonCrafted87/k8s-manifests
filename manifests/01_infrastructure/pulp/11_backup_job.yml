@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pulp-backup-job
+  namespace: storage
+  labels:
+    app: pulp-backup-job
+spec:
+  schedule: 30 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: pulp-backup-job
+        spec:
+          containers:
+          - name: pulp-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.1.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: pulp-postgres
+            volumeMounts:
+            - name: pulp-postgres
+              mountPath: /mnt/source
+            - name: backup
+              mountPath: /mnt/backups
+          restartPolicy: OnFailure
+          volumes:
+          - name: pulp-postgres
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/pulp/postgres
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups
