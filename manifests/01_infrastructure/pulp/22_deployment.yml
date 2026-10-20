@@ -18,6 +18,7 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 700
+      enableServiceLinks: false
       initContainers:
       - name: migrate
         image: pulp/pulp:3.85.32
@@ -159,6 +160,8 @@ spec:
               key: password
         - name: PULP_CONTENT_WORKERS
           value: '1'
+        - name: PULP_WORKER_NAME_TEMPLATE
+          value: content-{pid}@{hostname}
         ports:
         - name: content
           containerPort: 24816
