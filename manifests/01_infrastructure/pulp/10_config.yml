@@ -23,7 +23,7 @@ data:
     CACHE_ENABLED = True
     REDIS_HOST = "pulp-redis"
     REDIS_PORT = 6379
-    ENABLED_PLUGINS = ["pulp_rpm", "pulp_container"]
+    ENABLED_PLUGINS = ["pulp_file", "pulp_rpm", "pulp_container"]
     ANALYTICS = False
     TOKEN_AUTH_DISABLED = True
     STATIC_ROOT = "/var/lib/operator/static/"

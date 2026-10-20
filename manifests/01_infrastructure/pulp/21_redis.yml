@@ -22,7 +22,7 @@ spec:
       - name: redis
         image: redis:7.4.11
         imagePullPolicy: IfNotPresent
-        args: [--appendonly, yes]
+        args: [--appendonly=yes]
         env:
         - name: TZ
           value: America/Chicago
