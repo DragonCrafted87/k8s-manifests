@@ -45,6 +45,10 @@ data:
         handle @pulp_ui {
           reverse_proxy pulp-ui:8080
         }
+        @pulp_root path /
+        handle @pulp_root {
+          redir * /ui/ 308
+        }
         handle /v2/* {
           reverse_proxy 192.168.8.53:24817
         }
