@@ -38,6 +38,13 @@ spec:
             secretKeyRef:
               name: pulp-database
               key: password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
         volumeMounts:
         - name: settings
           mountPath: /etc/pulp/settings.py
@@ -69,6 +76,13 @@ spec:
             secretKeyRef:
               name: pulp-secret
               key: admin-password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
         volumeMounts:
         - name: settings
           mountPath: /etc/pulp/settings.py
@@ -96,16 +110,25 @@ spec:
             secretKeyRef:
               name: pulp-database
               key: password
+        - name: PULP_API_WORKERS
+          value: '1'
         ports:
         - name: api
           containerPort: 24817
           protocol: TCP
         readinessProbe:
-          httpGet:
-            path: /pulp/api/v3/status/
-            port: api
+          exec:
+            command: [readyz.py, /pulp/api/v3/status/]
           initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
         volumeMounts:
         - name: settings
           mountPath: /etc/pulp/settings.py
@@ -134,6 +157,8 @@ spec:
             secretKeyRef:
               name: pulp-database
               key: password
+        - name: PULP_CONTENT_WORKERS
+          value: '1'
         ports:
         - name: content
           containerPort: 24816
@@ -143,6 +168,13 @@ spec:
             port: content
           initialDelaySeconds: 10
           periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
         volumeMounts:
         - name: settings
           mountPath: /etc/pulp/settings.py
@@ -171,6 +203,13 @@ spec:
             secretKeyRef:
               name: pulp-database
               key: password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
         volumeMounts:
         - name: settings
           mountPath: /etc/pulp/settings.py

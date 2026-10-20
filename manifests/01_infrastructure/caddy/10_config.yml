@@ -41,25 +41,14 @@ data:
     }
     pulp.stealthdragonland.net {
       route {
-        handle /outpost.goauthentik.io/* {
-          reverse_proxy 192.168.8.54:80
+        handle /v2/* {
+          reverse_proxy 192.168.8.53:24817
         }
-        forward_auth 192.168.8.54:80 {
-          uri /outpost.goauthentik.io/auth/caddy
-          copy_headers {
-            X-Authentik-Username
-            X-Authentik-Groups
-            X-Authentik-Entitlements
-            X-Authentik-Email
-            X-Authentik-Name
-            X-Authentik-Uid
-            X-Authentik-Jwt
-            X-Authentik-Meta-Jwks
-            X-Authentik-Meta-Outpost
-            X-Authentik-Meta-Provider
-            X-Authentik-Meta-App
-            X-Authentik-Meta-Version
-          }
+        handle /token/* {
+          reverse_proxy 192.168.8.53:24817
+        }
+        handle /extensions/v2/* {
+          reverse_proxy 192.168.8.53:24817
         }
         handle /pulp/content* {
           reverse_proxy 192.168.8.53:24816
@@ -71,7 +60,4 @@ data:
           reverse_proxy 192.168.8.53:24817
         }
       }
-    }
-    auth.stealthdragonland.net {
-      reverse_proxy 192.168.8.54:80
     }

@@ -45,6 +45,13 @@ spec:
             command: [pg_isready, -U, pulp, -d, pulp]
           initialDelaySeconds: 5
           periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
         volumeMounts:
         - name: data
           mountPath: /var/lib/postgresql/data

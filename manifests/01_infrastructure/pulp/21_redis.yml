@@ -35,6 +35,13 @@ spec:
             command: [redis-cli, ping]
           initialDelaySeconds: 5
           periodSeconds: 10
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
         volumeMounts:
         - name: data
           mountPath: /data

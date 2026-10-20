@@ -8,6 +8,8 @@ data:
   settings.py: |
     CONTENT_ORIGIN = "https://pulp.stealthdragonland.net"
     CSRF_TRUSTED_ORIGINS = ["https://pulp.stealthdragonland.net"]
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
