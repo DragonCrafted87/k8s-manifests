@@ -1,0 +1,238 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: infrastructure
+  name: pulp
+  labels:
+    app: pulp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: pulp
+  template:
+    metadata:
+      labels:
+        role: pulp
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 700
+      initContainers:
+      - name: migrate
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [bash, -c]
+        args:
+        - /usr/bin/wait_on_postgres.py && /usr/local/bin/pulpcore-manager migrate --noinput
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: PULP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: secret-key
+        - name: PULP_DATABASES__default__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-database
+              key: password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        volumeMounts:
+        - name: settings
+          mountPath: /etc/pulp/settings.py
+          subPath: settings.py
+        - name: db-key
+          mountPath: /etc/pulp/certs/database_fields.symmetric.key
+          subPath: db-encryption-key
+        - name: storage
+          mountPath: /var/lib/pulp
+      - name: admin-password
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [/usr/bin/set_init_password.sh]
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: PULP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: secret-key
+        - name: PULP_DATABASES__default__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-database
+              key: password
+        - name: PULP_DEFAULT_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: admin-password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        volumeMounts:
+        - name: settings
+          mountPath: /etc/pulp/settings.py
+          subPath: settings.py
+        - name: db-key
+          mountPath: /etc/pulp/certs/database_fields.symmetric.key
+          subPath: db-encryption-key
+        - name: storage
+          mountPath: /var/lib/pulp
+      containers:
+      - name: pulp-api
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [pulp-api]
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: PULP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: secret-key
+        - name: PULP_DATABASES__default__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-database
+              key: password
+        - name: PULP_API_WORKERS
+          value: '1'
+        ports:
+        - name: api
+          containerPort: 24817
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command: [readyz.py, /pulp/api/v3/status/]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        volumeMounts:
+        - name: settings
+          mountPath: /etc/pulp/settings.py
+          subPath: settings.py
+        - name: db-key
+          mountPath: /etc/pulp/certs/database_fields.symmetric.key
+          subPath: db-encryption-key
+        - name: storage
+          mountPath: /var/lib/pulp
+        - name: containers
+          mountPath: /var/lib/containers
+      - name: pulp-content
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [pulp-content]
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: PULP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: secret-key
+        - name: PULP_DATABASES__default__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-database
+              key: password
+        - name: PULP_CONTENT_WORKERS
+          value: '1'
+        ports:
+        - name: content
+          containerPort: 24816
+          protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: content
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: settings
+          mountPath: /etc/pulp/settings.py
+          subPath: settings.py
+        - name: db-key
+          mountPath: /etc/pulp/certs/database_fields.symmetric.key
+          subPath: db-encryption-key
+        - name: storage
+          mountPath: /var/lib/pulp
+        - name: containers
+          mountPath: /var/lib/containers
+      - name: pulp-worker
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [pulp-worker]
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: PULP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: secret-key
+        - name: PULP_DATABASES__default__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-database
+              key: password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        volumeMounts:
+        - name: settings
+          mountPath: /etc/pulp/settings.py
+          subPath: settings.py
+        - name: db-key
+          mountPath: /etc/pulp/certs/database_fields.symmetric.key
+          subPath: db-encryption-key
+        - name: storage
+          mountPath: /var/lib/pulp
+        - name: containers
+          mountPath: /var/lib/containers
+      volumes:
+      - name: settings
+        configMap:
+          name: pulp-settings
+      - name: db-key
+        secret:
+          secretName: pulp-secret
+      - name: storage
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/pulp/storage
+      - name: containers
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/pulp/containers

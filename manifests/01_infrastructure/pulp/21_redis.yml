@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: infrastructure
+  name: pulp-redis
+  labels:
+    app: pulp-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: pulp-redis
+  template:
+    metadata:
+      labels:
+        role: pulp-redis
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      containers:
+      - name: redis
+        image: redis:7.4.11
+        imagePullPolicy: IfNotPresent
+        args: [--appendonly, yes]
+        env:
+        - name: TZ
+          value: America/Chicago
+        ports:
+        - name: redis
+          containerPort: 6379
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command: [redis-cli, ping]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/pulp/redis
