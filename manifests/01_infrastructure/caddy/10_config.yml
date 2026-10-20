@@ -41,6 +41,10 @@ data:
     }
     pulp.stealthdragonland.net {
       route {
+        @pulp_ui path /ui /ui/* /static/pulp_ui/* /pulp-ui-config.json
+        handle @pulp_ui {
+          reverse_proxy pulp-ui:8080
+        }
         handle /v2/* {
           reverse_proxy 192.168.8.53:24817
         }

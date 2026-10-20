@@ -1,0 +1,109 @@
+---
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulp-ui
+  namespace: infrastructure
+data:
+  Caddyfile: |
+    :8080 {
+      root * /srv/pulp-ui
+      handle /pulp-ui-config.json {
+        file_server
+      }
+      handle /static/pulp_ui/* {
+        uri strip_prefix /static/pulp_ui
+        file_server
+      }
+      handle /ui {
+        redir /ui/ 308
+      }
+      handle /ui/* {
+        uri strip_prefix /ui
+        try_files {path} /index.html
+        file_server
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: infrastructure
+  name: pulp-ui
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+    protocol: TCP
+  selector:
+    role: pulp-ui
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: infrastructure
+  name: pulp-ui
+  labels:
+    app: pulp-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: pulp-ui
+  template:
+    metadata:
+      labels:
+        role: pulp-ui
+    spec:
+      initContainers:
+      - name: fetch
+        image: caddy:2.7.6-alpine
+        imagePullPolicy: IfNotPresent
+        command: [sh, -c]
+        args:
+        - |
+          wget -O /tmp/pulp-ui.tgz \
+          https://github.com/pulp/pulp-ui/releases/download/v0.1.24/pulp-ui-2026-01-02.tar.gz
+          tar -xzf /tmp/pulp-ui.tgz -C /srv/pulp-ui
+        volumeMounts:
+        - name: files
+          mountPath: /srv/pulp-ui
+      containers:
+      - name: pulp-ui
+        image: caddy:2.7.6-alpine
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /pulp-ui-config.json
+            port: http
+          initialDelaySeconds: 2
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/caddy/Caddyfile
+          subPath: Caddyfile
+        - name: files
+          mountPath: /srv/pulp-ui
+          readOnly: true
+      volumes:
+      - name: conf
+        configMap:
+          name: pulp-ui
+      - name: files
+        emptyDir: {}
