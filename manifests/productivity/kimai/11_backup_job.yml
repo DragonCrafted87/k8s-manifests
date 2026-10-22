@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kimai-backup-job
+  namespace: productivity
+  labels:
+    app: kimai-backup-job
+spec:
+  schedule: 40 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: kimai-backup-job
+        spec:
+          containers:
+          - name: kimai-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: kimai
+            - name: BACKUP_METHOD
+              value: mysql
+            - name: BACKUP_PRUNE
+              value: dry-run
+            - name: MYSQL_HOST
+              value: kimai-mysql
+            - name: MYSQL_USER
+              value: root
+            - name: MYSQL_DATABASE
+              value: kimai
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: kimai-database-pass
+                  key: password
+            volumeMounts:
+            - name: backup
+              mountPath: /mnt/backups
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

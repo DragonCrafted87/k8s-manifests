@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: calligraphy-backups
+  namespace: productivity
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: smb-static
+  volumeName: calligraphy-backups-productivity
+  resources:
+    requests:
+      storage: 1Ti
