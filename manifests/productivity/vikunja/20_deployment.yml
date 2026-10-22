@@ -7,6 +7,8 @@ metadata:
     app: vikunja
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       role: vikunja
@@ -18,6 +20,25 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
+      initContainers:
+      - name: restore-db
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        command: [/bin/sh, /restore/restore.sh]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: replica
+          mountPath: /replica
+        - name: seed
+          mountPath: /seed
+          readOnly: true
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
       containers:
       - name: vikunja
         image: vikunja/vikunja:2.7.0
@@ -55,12 +76,33 @@ spec:
           mountPath: /db
         - name: files
           mountPath: /app/vikunja/files
+      - name: litestream
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        args: [replicate, -config, /restore/litestream.yml]
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
       volumes:
       - name: db
-        nfs:
-          server: hoard-drake.stealthdragonland.net
-          path: /srv/data/vikunja/db
+        emptyDir: {}
       - name: files
         nfs:
           server: hoard-drake.stealthdragonland.net
           path: /srv/data/vikunja/files
+      - name: replica
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/vikunja/replica
+      - name: seed
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/vikunja/db
+      - name: litestream
+        configMap:
+          name: vikunja-litestream
