@@ -26,22 +26,26 @@ spec:
             - name: BACKUP_NAME
               value: jellyfin
             - name: BACKUP_METHOD
-              value: sqlite
+              value: litestream
             - name: BACKUP_PRUNE
               value: dry-run
-            - name: SQLITE_DB
-              value: data/jellyfin.db data/library.db
+            - name: LITESTREAM_DB
+              value: /db/jellyfin.db
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
             volumeMounts:
-            - name: jellyfin
-              mountPath: /mnt/source
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: jellyfin
           restartPolicy: OnFailure
           volumes:
-          - name: jellyfin
+          - name: replica
             nfs:
               server: hoard-drake.stealthdragonland.net
-              path: /srv/data/jellyfin-config
+              path: /srv/data/jellyfin-config/replica/jellyfin
           - name: backup
             persistentVolumeClaim:
               claimName: calligraphy-backups

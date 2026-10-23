@@ -33,6 +33,7 @@ spec:
               readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: caddy
           restartPolicy: OnFailure
           volumes:
           - name: caddy

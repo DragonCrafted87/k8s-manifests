@@ -44,6 +44,7 @@ spec:
               readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: vikunja
           restartPolicy: OnFailure
           volumes:
           - name: replica

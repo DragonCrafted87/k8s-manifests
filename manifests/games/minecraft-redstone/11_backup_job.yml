@@ -35,6 +35,7 @@ spec:
               readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: minecraft-redstone
           restartPolicy: OnFailure
           volumes:
           - name: minecraft

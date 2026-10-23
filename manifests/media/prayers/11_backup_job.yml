@@ -33,6 +33,7 @@ spec:
               readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: prayers
           restartPolicy: OnFailure
           volumes:
           - name: prayers

@@ -43,6 +43,7 @@ spec:
             volumeMounts:
             - name: backup
               mountPath: /mnt/backups
+              subPath: kimai
           restartPolicy: OnFailure
           volumes:
           - name: backup

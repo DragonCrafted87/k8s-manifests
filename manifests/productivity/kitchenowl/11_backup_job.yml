@@ -26,24 +26,35 @@ spec:
             - name: BACKUP_NAME
               value: kitchenowl
             - name: BACKUP_METHOD
-              value: sqlite
-            - name: SQLITE_DB
-              value: database.db
-            - name: BACKUP_COPY
-              value: upload
+              value: litestream
             - name: BACKUP_PRUNE
               value: dry-run
+            - name: LITESTREAM_DB
+              value: /data/database.db
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
+            - name: BACKUP_EXTRA
+              value: /mnt/extra
             volumeMounts:
-            - name: kitchenowl
-              mountPath: /mnt/source
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
+            - name: upload
+              mountPath: /mnt/extra/upload
+              readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: kitchenowl
           restartPolicy: OnFailure
           volumes:
-          - name: kitchenowl
+          - name: replica
             nfs:
               server: hoard-drake.stealthdragonland.net
-              path: /srv/data/kitchenowl
+              path: /srv/data/kitchenowl/replica
+          - name: upload
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/kitchenowl/upload
           - name: backup
             persistentVolumeClaim:
               claimName: calligraphy-backups

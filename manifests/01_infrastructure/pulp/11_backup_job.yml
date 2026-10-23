@@ -50,6 +50,7 @@ spec:
             volumeMounts:
             - name: backup
               mountPath: /mnt/backups
+              subPath: pulp
           restartPolicy: OnFailure
           volumes:
           - name: backup
