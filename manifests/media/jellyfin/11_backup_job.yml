@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jellyfin-backup-job
+  namespace: storage
+  labels:
+    app: jellyfin-backup-job
+spec:
+  schedule: 50 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: jellyfin-backup-job
+        spec:
+          containers:
+          - name: jellyfin-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: jellyfin
+            - name: BACKUP_METHOD
+              value: litestream
+            - name: BACKUP_PRUNE
+              value: dry-run
+            - name: LITESTREAM_DB
+              value: /db/jellyfin.db
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
+            volumeMounts:
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+          restartPolicy: OnFailure
+          volumes:
+          - name: replica
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/jellyfin-config/replica/jellyfin
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

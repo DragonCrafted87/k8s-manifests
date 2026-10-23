@@ -7,6 +7,8 @@ metadata:
     app: jellyfin
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       role: jellyfin
@@ -15,6 +17,27 @@ spec:
       labels:
         role: jellyfin
     spec:
+      initContainers:
+      - name: restore-db
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        command: [/bin/sh, /restore/restore.sh]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: replica
+          mountPath: /replica
+        - name: seed
+          mountPath: /seed
+          readOnly: true
+        - name: configuration
+          mountPath: /config
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
       containers:
       - name: jellyfin
         image: jellyfin/jellyfin:10.10.5
@@ -36,6 +59,20 @@ spec:
           mountPath: /data/media
         - name: configuration
           mountPath: /config
+        - name: db
+          mountPath: /db
+      - name: litestream
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        args: [replicate, -config, /restore/litestream.yml]
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
       volumes:
       - name: media
         persistentVolumeClaim:
@@ -44,3 +81,17 @@ spec:
         nfs:
           server: hoard-drake.stealthdragonland.net
           path: /srv/data/jellyfin-config/
+      - name: db
+        emptyDir: {}
+      - name: replica
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/jellyfin-config/replica
+      - name: seed
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/jellyfin-config/data
+          readOnly: true
+      - name: litestream
+        configMap:
+          name: jellyfin-litestream

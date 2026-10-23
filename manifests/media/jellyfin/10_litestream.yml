@@ -1,0 +1,106 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jellyfin-litestream
+  namespace: media
+data:
+  litestream.yml: |
+    snapshot:
+      interval: 1h
+      retention: 168h
+    dbs:
+      - path: /db/jellyfin.db
+        replica:
+          type: file
+          path: /replica/jellyfin
+      - path: /db/library.db
+        replica:
+          type: file
+          path: /replica/library
+  restore.sh: |
+    #!/bin/sh
+    # A replica with files is the only source. The seed is the pre-cutover
+    # copy and is used only when that replica has no files yet.
+    # library.db.bak1 through bak3 stay on the data directory. They are
+    # not replicated and not renamed. sqlite3 .backup folds the seed WAL.
+    # This script does not checkpoint the seed in place.
+    set -eu
+    config=/restore/litestream.yml
+    seed=/seed
+    replica=/replica
+    dbdir=/db
+    linkdir=/config/data
+
+    if [ ! -d "$linkdir" ]; then
+        echo "jellyfin data directory ${linkdir} is not mounted" >&2
+        exit 1
+    fi
+
+    replica_has_files() {
+        dir=$1
+        if [ ! -d "$dir" ]; then
+            return 1
+        fi
+        [ -n "$(find "$dir" -type f -print -quit)" ]
+    }
+
+    restore_one() {
+        name=$1
+        db="${dbdir}/${name}"
+        litestream restore \
+            -config "$config" \
+            -if-replica-exists \
+            -o "$db" \
+            "$db"
+        if [ -s "$db" ]; then
+            return 0
+        fi
+        rm -f "$db" "${db}-wal" "${db}-shm"
+        if replica_has_files "${replica}/${name}"; then
+            echo "litestream replica for ${name} has files but restore wrote no database" >&2
+            exit 1
+        fi
+        src="${seed}/${name}"
+        if [ -L "$src" ] || [ ! -s "$src" ]; then
+            src="${seed}/${name}.nfs-seed"
+        fi
+        if [ -L "$src" ] || [ ! -s "$src" ]; then
+            echo "no litestream replica and no seed database for ${name}" >&2
+            exit 1
+        fi
+        copy="/tmp/${name}"
+        rm -f "$copy" "${copy}-wal" "${copy}-shm"
+        cp "$src" "$copy"
+        if [ -f "${src}-wal" ] && [ ! -L "${src}-wal" ]; then
+            cp "${src}-wal" "${copy}-wal"
+        fi
+        if [ -f "${src}-shm" ] && [ ! -L "${src}-shm" ]; then
+            cp "${src}-shm" "${copy}-shm"
+        fi
+        sqlite3 "$copy" ".backup '${db}'"
+        test -s "$db"
+    }
+
+    link_one() {
+        name=$1
+        dest="${linkdir}/${name}"
+        if [ -L "$dest" ]; then
+            return 0
+        fi
+        if [ -e "$dest" ]; then
+            mv "$dest" "${linkdir}/${name}.nfs-seed"
+        fi
+        if [ -e "${dest}-wal" ] && [ ! -L "${dest}-wal" ]; then
+            mv "${dest}-wal" "${linkdir}/${name}.nfs-seed-wal"
+        fi
+        if [ -e "${dest}-shm" ] && [ ! -L "${dest}-shm" ]; then
+            mv "${dest}-shm" "${linkdir}/${name}.nfs-seed-shm"
+        fi
+        ln -s "/db/${name}" "$dest"
+    }
+
+    restore_one jellyfin.db
+    restore_one library.db
+    link_one jellyfin.db
+    link_one library.db
