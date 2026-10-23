@@ -98,3 +98,16 @@ data:
         respond "Forbidden" 403
       }
     }
+    opencode.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16
+      handle @lan {
+        reverse_proxy opencode.agents.svc.cluster.local:4096
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }
