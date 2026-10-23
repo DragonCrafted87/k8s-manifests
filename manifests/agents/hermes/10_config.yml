@@ -14,8 +14,6 @@ data:
       backend: local
     agent:
       gateway_timeout: 1800
-    database:
-      journal_mode: delete
     dashboard:
       public_url: https://hermes.stealthdragonland.net
       trusted_proxies:

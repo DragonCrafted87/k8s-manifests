@@ -11,11 +11,12 @@
 # not deployed, so the dashboard uses the password in hermes-secret
 # until those keys replace the basic-auth keys.
 #
-# TODO: task 233 (Litestream 05) for the SQLite session DB on
-# /opt/data. journal_mode delete is seeded before the first start
-# because this volume is NFS.
-# TODO: task 172 backup audit. Stateful volume
-# hoard-drake:/srv/data/hermes. Do not change the backup image here.
+# state.db is an emptyDir behind a symlink at /opt/data/state.db.
+# v0.22.2 follows that link. A later image that requires the
+# resolved parent to be HERMES_HOME will not (hermes-agent#143007).
+# The rest of /opt/data stays on NFS. The nightly archive is the
+# session database only, because the replica directory lives under
+# this home and the backup image would archive it with BACKUP_EXTRA.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -73,6 +74,23 @@ spec:
           mountPath: /opt/data
         - name: tmp
           mountPath: /tmp
+      - name: restore-db
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        command: [/bin/sh, /restore/restore.sh]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: data
+          mountPath: /opt/data
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
       containers:
       - name: hermes
         image: nousresearch/hermes-agent:v0.22.2@sha256:36099926da316742423544e055d4734777105ffe6341873af5459b957d0c2919
@@ -134,6 +152,20 @@ spec:
           mountPath: /run
         - name: tmp
           mountPath: /tmp
+        - name: db
+          mountPath: /db
+      - name: litestream
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        args: [replicate, -config, /restore/litestream.yml]
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
       volumes:
       - name: config
         configMap:
@@ -142,6 +174,15 @@ spec:
         nfs:
           server: hoard-drake.stealthdragonland.net
           path: /srv/data/hermes
+      - name: db
+        emptyDir: {}
+      - name: replica
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/hermes/replica
+      - name: litestream
+        configMap:
+          name: hermes-litestream
       - name: run
         emptyDir:
           medium: Memory

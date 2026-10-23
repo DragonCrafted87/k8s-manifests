@@ -1,0 +1,81 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-litestream
+  namespace: agents
+data:
+  litestream.yml: |
+    snapshot:
+      interval: 1h
+      retention: 168h
+    dbs:
+      - path: /db/state.db
+        replica:
+          type: file
+          path: /replica
+  restore.sh: |
+    #!/bin/sh
+    # Live state.db is on the emptyDir. The NFS home keeps a symlink so
+    # Hermes still opens $HERMES_HOME/state.db. WAL files are created
+    # beside the real file, on the emptyDir.
+    # A replica with files is the only source after the first boot.
+    # A regular state.db already on the home is the seed, and only when
+    # that replica has no files. The first boot has neither and creates
+    # an empty WAL database so the sidecar has a file to replicate.
+    set -eu
+    db=/db/state.db
+    config=/restore/litestream.yml
+    replica=/replica
+    home=/opt/data
+    dest=$home/state.db
+
+    if [ ! -d "$home" ]; then
+        echo "hermes home ${home} is not mounted" >&2
+        exit 1
+    fi
+
+    replica_has_files() {
+        [ -d "$replica" ] && [ -n "$(find "$replica" -type f -print -quit)" ]
+    }
+
+    if replica_has_files; then
+        litestream restore \
+            -config "$config" \
+            -if-replica-exists \
+            -o "$db" \
+            "$db"
+        if [ ! -s "$db" ]; then
+            echo "litestream replica has files but restore wrote no database" >&2
+            exit 1
+        fi
+    elif [ -f "$dest" ] && [ ! -L "$dest" ] && [ -s "$dest" ]; then
+        copy=/tmp/state.db
+        rm -f "$copy" "${copy}-wal" "${copy}-shm"
+        cp "$dest" "$copy"
+        if [ -f "${dest}-wal" ] && [ ! -L "${dest}-wal" ]; then
+            cp "${dest}-wal" "${copy}-wal"
+        fi
+        if [ -f "${dest}-shm" ] && [ ! -L "${dest}-shm" ]; then
+            cp "${dest}-shm" "${copy}-shm"
+        fi
+        sqlite3 "$copy" ".backup '${db}'"
+        test -s "$db"
+    else
+        sqlite3 "$db" "PRAGMA journal_mode=WAL;"
+        test -s "$db"
+    fi
+
+    if [ -L "$dest" ]; then
+        exit 0
+    fi
+    if [ -e "$dest" ]; then
+        mv "$dest" "${home}/state.db.nfs-seed"
+    fi
+    if [ -e "${dest}-wal" ] && [ ! -L "${dest}-wal" ]; then
+        mv "${dest}-wal" "${home}/state.db.nfs-seed-wal"
+    fi
+    if [ -e "${dest}-shm" ] && [ ! -L "${dest}-shm" ]; then
+        mv "${dest}-shm" "${home}/state.db.nfs-seed-shm"
+    fi
+    ln -s /db/state.db "$dest"
