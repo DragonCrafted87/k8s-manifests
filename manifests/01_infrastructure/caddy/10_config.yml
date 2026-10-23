@@ -71,13 +71,14 @@ data:
     }
     # Agents are ClusterIP only. 192.168.0.1 is mist-dragon, the source
     # of vpn-relay, so a public request is refused. The rest of the
-    # house LAN is allowed. No other VPN client prefix is recorded.
+    # house LAN is allowed. 10.42.0.0/16 is the pod network: a node that
+    # opens the Caddy VIP is rewritten to its flannel address.
     hermes.stealthdragonland.net {
       @relay remote_ip 192.168.0.1/32
       handle @relay {
         respond "Forbidden" 403
       }
-      @lan remote_ip 192.168.0.0/16
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
       handle @lan {
         reverse_proxy hermes.agents.svc.cluster.local:9119
       }
@@ -90,7 +91,7 @@ data:
       handle @relay {
         respond "Forbidden" 403
       }
-      @lan remote_ip 192.168.0.0/16
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
       handle @lan {
         reverse_proxy hermes.agents.svc.cluster.local:8642
       }
@@ -103,7 +104,7 @@ data:
       handle @relay {
         respond "Forbidden" 403
       }
-      @lan remote_ip 192.168.0.0/16
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
       handle @lan {
         reverse_proxy opencode.agents.svc.cluster.local:4096
       }
