@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vikunja-backup-job
+  namespace: storage
+  labels:
+    app: vikunja-backup-job
+spec:
+  schedule: 20 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: vikunja-backup-job
+        spec:
+          containers:
+          - name: vikunja-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: vikunja
+            - name: BACKUP_METHOD
+              value: litestream
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: LITESTREAM_DB
+              value: /db/vikunja.db
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
+            - name: BACKUP_EXTRA
+              value: /mnt/extra
+            volumeMounts:
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
+            - name: files
+              mountPath: /mnt/extra/files
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: vikunja
+          restartPolicy: OnFailure
+          volumes:
+          - name: replica
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/vikunja/replica
+          - name: files
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/vikunja/files
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

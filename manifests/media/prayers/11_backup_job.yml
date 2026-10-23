@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: prayers-backup-job
+  namespace: storage
+  labels:
+    app: prayers-backup-job
+spec:
+  schedule: 10 5 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: prayers-backup-job
+        spec:
+          containers:
+          - name: prayers-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: prayers
+            - name: BACKUP_PRUNE
+              value: apply
+            volumeMounts:
+            - name: prayers
+              mountPath: /mnt/source
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: prayers
+          restartPolicy: OnFailure
+          volumes:
+          - name: prayers
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/prayers
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

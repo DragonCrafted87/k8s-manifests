@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kitchenowl-backup-job
+  namespace: storage
+  labels:
+    app: kitchenowl-backup-job
+spec:
+  schedule: 10 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: kitchenowl-backup-job
+        spec:
+          containers:
+          - name: kitchenowl-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: kitchenowl
+            - name: BACKUP_METHOD
+              value: litestream
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: LITESTREAM_DB
+              value: /data/database.db
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
+            - name: BACKUP_EXTRA
+              value: /mnt/extra
+            volumeMounts:
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
+            - name: upload
+              mountPath: /mnt/extra/upload
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: kitchenowl
+          restartPolicy: OnFailure
+          volumes:
+          - name: replica
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/kitchenowl/replica
+          - name: upload
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/kitchenowl/upload
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

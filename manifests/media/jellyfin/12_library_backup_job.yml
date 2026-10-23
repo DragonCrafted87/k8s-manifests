@@ -28,7 +28,7 @@ spec:
             - name: BACKUP_METHOD
               value: litestream
             - name: BACKUP_PRUNE
-              value: dry-run
+              value: apply
             - name: LITESTREAM_DB
               value: /db/library.db
             - name: LITESTREAM_REPLICA
@@ -39,6 +39,7 @@ spec:
               readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: jellyfin-library
           restartPolicy: OnFailure
           volumes:
           - name: replica

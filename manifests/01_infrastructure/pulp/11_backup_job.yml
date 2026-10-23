@@ -1,4 +1,3 @@
-# yamllint disable rule:indentation
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -17,41 +16,43 @@ spec:
         metadata:
           name: pulp-backup-job
         spec:
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 999
           containers:
           - name: pulp-backup
-            image: postgres:16.15
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
             imagePullPolicy: IfNotPresent
             env:
             - name: TZ
               value: America/Chicago
+            - name: BACKUP_NAME
+              value: pulp
+            - name: BACKUP_METHOD
+              value: postgres
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: PGHOST
+              value: pulp-postgres
+            - name: PGUSER
+              value: pulp
+            - name: PGDATABASE
+              value: pulp
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
                   name: pulp-database
                   key: password
-            command: [bash, -eu, -c]
-            args:
-            - |
-              stamp=$(date -u +%Y%m%dT%H%M%SZ)
-              pg_dump --host=pulp-postgres --username=pulp \
-              --dbname=pulp --format=custom \
-              --file="/mnt/backups/pulp-${stamp}.dump"
             resources:
               requests:
                 cpu: 50m
                 memory: 64Mi
               limits:
-                cpu: 500m
-                memory: 256Mi
+                cpu: '1'
+                memory: 1Gi
             volumeMounts:
             - name: backup
               mountPath: /mnt/backups
+              subPath: pulp
           restartPolicy: OnFailure
           volumes:
           - name: backup
-            nfs:
-              server: hoard-drake.stealthdragonland.net
-              path: /srv/data/pulp/backups
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

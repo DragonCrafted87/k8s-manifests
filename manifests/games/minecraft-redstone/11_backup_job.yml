@@ -18,18 +18,24 @@ spec:
         spec:
           containers:
           - name: mc-red-backup
-            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.1.0
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
             imagePullPolicy: IfNotPresent
             env:
             - name: TZ
               value: America/Chicago
             - name: BACKUP_NAME
               value: minecraft-redstone
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: RCON_HOST
+              value: minecraft-redstone.games.svc.cluster.local
             volumeMounts:
             - name: minecraft
               mountPath: /mnt/source
+              readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: minecraft-redstone
           restartPolicy: OnFailure
           volumes:
           - name: minecraft

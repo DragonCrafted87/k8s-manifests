@@ -18,18 +18,22 @@ spec:
         spec:
           containers:
           - name: foundry-backup
-            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.1.0
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
             imagePullPolicy: IfNotPresent
             env:
             - name: TZ
               value: America/Chicago
             - name: BACKUP_NAME
               value: foundry
+            - name: BACKUP_PRUNE
+              value: apply
             volumeMounts:
             - name: foundry
               mountPath: /mnt/source
+              readOnly: true
             - name: backup
               mountPath: /mnt/backups
+              subPath: foundry
           restartPolicy: OnFailure
           volumes:
           - name: foundry
