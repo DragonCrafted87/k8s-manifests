@@ -28,7 +28,7 @@ spec:
             - name: BACKUP_METHOD
               value: mysql
             - name: BACKUP_PRUNE
-              value: dry-run
+              value: apply
             - name: MYSQL_HOST
               value: kimai-mysql
             - name: MYSQL_USER

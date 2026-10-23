@@ -26,7 +26,7 @@ spec:
             - name: BACKUP_NAME
               value: foundry
             - name: BACKUP_PRUNE
-              value: dry-run
+              value: apply
             volumeMounts:
             - name: foundry
               mountPath: /mnt/source

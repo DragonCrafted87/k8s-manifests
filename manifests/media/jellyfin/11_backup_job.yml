@@ -28,7 +28,7 @@ spec:
             - name: BACKUP_METHOD
               value: litestream
             - name: BACKUP_PRUNE
-              value: dry-run
+              value: apply
             - name: LITESTREAM_DB
               value: /db/jellyfin.db
             - name: LITESTREAM_REPLICA

@@ -28,7 +28,7 @@ spec:
             - name: BACKUP_METHOD
               value: postgres
             - name: BACKUP_PRUNE
-              value: dry-run
+              value: apply
             - name: PGHOST
               value: pulp-postgres
             - name: PGUSER
