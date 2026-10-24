@@ -1,0 +1,202 @@
+---
+# yamllint disable rule:indentation
+# Copy of pull-through.py. Apply this file to run the Job.
+# It talks to the Pulp API in-cluster and does not print the password.
+apiVersion: v1
+data:
+  pull-through.py: |
+    #!/usr/bin/env python3
+    """Create Pulp container pull-through remotes and distributions.
+
+    One pair per upstream registry. A second run leaves an existing pair
+    as it is. Credentials come from the environment, not from this file.
+
+    The container plugin's documented call is the REST API, not pulp-cli.
+    pulp-cli 0.41.1 has no pull-through type:
+    https://github.com/pulp/pulp-cli/issues/1034
+
+    https://pulpproject.org/pulp_container/docs/admin/guides/pull-through-caching/
+    """
+
+    import base64
+    import json
+    import os
+    import sys
+    import time
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    API = os.environ.get(
+        "PULP_API", "http://pulp.infrastructure.svc.cluster.local:24817"
+    ).rstrip("/")
+    USER = os.environ.get("PULP_USER", "admin")
+    PASSWORD = os.environ.get("PULP_PASSWORD")
+
+    # name, upstream URL, distribution base path
+    REGISTRIES = (
+        ("docker.io", "https://registry-1.docker.io", "docker.io"),
+        ("ghcr.io", "https://ghcr.io", "ghcr.io"),
+    )
+
+    REMOTE = "/pulp/api/v3/remotes/container/pull-through/"
+    DISTRIBUTION = "/pulp/api/v3/distributions/container/pull-through/"
+    TASKS = "/pulp/api/v3/tasks/"
+
+
+    def fail(message):
+        """Exit with a message that does not include the password."""
+        sys.exit(message)
+
+
+    def request(method, path, body=None):
+        """Call the Pulp API and return the decoded JSON body."""
+        if not PASSWORD:
+            fail("Set PULP_PASSWORD.")
+        data = json.dumps(body).encode() if body is not None else None
+        basic = base64.b64encode(f"{USER}:{PASSWORD}".encode()).decode()
+        req = urllib.request.Request(
+            API + path,
+            data=data,
+            method=method,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Basic {basic}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                raw = resp.read()
+                status = resp.status
+        except urllib.error.HTTPError as err:
+            detail = err.read().decode(errors="replace")[:500]
+            fail(f"Pulp {method} {path} failed: {err.code} {detail}")
+        if not raw:
+            return status, {}
+        return status, json.loads(raw)
+
+
+    def wait_task(href):
+        """Poll a Pulp task until it finishes and return its payload."""
+        path = href if href.startswith("/") else "/" + href
+        for _ in range(60):
+            _status, task = request("GET", path)
+            state = task.get("state")
+            if state in ("completed", "failed", "canceled"):
+                if state != "completed":
+                    fail(f"Pulp task {path} {state}: {task.get('error')}")
+                return task
+            time.sleep(2)
+        fail(f"Pulp task {path} did not finish.")
+
+
+    def unwrap(status, payload):
+        """Return the created object, following a 202 task when Pulp queued one."""
+        if status == 202 or (isinstance(payload, dict) and payload.get("task")):
+            task = wait_task(payload["task"])
+            created = task.get("created_resources") or []
+            if not created:
+                fail("Pulp task finished without a created resource.")
+            _status, obj = request("GET", created[0])
+            return obj
+        return payload
+
+
+    def find_named(collection, name):
+        """Return the object with this name, or None."""
+        query = urllib.parse.urlencode({"name": name, "limit": 100})
+        _status, page = request("GET", f"{collection}?{query}")
+        for item in page.get("results") or []:
+            if item.get("name") == name:
+                return item
+        return None
+
+
+    def ensure(name, url, base_path):
+        """Create the remote and distribution when they are absent."""
+        remote = find_named(REMOTE, name)
+        if remote is None:
+            status, payload = request("POST", REMOTE, {"name": name, "url": url})
+            remote = unwrap(status, payload)
+            print(f"created remote {name}")
+        elif remote.get("url") != url:
+            fail(f"remote {name} exists with url {remote.get('url')}, expected {url}")
+        else:
+            print(f"remote {name} exists")
+
+        dist = find_named(DISTRIBUTION, name)
+        if dist is None:
+            status, payload = request(
+                "POST",
+                DISTRIBUTION,
+                {"name": name, "base_path": base_path, "remote": remote["pulp_href"]},
+            )
+            unwrap(status, payload)
+            print(f"created distribution {name} base_path {base_path}")
+        elif dist.get("base_path") != base_path:
+            fail(
+                f"distribution {name} exists with base_path {dist.get('base_path')}, "
+                f"expected {base_path}"
+            )
+        else:
+            print(f"distribution {name} exists")
+
+
+    def main():
+        """Create each configured registry pair."""
+        for name, url, base_path in REGISTRIES:
+            ensure(name, url, base_path)
+
+
+    if __name__ == "__main__":
+        main()
+kind: ConfigMap
+metadata:
+  name: pulp-pull-through
+  namespace: infrastructure
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: infrastructure
+  name: pulp-pull-through
+  labels:
+    app: pulp-pull-through
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+      - name: pull-through
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [python3, /opt/pull-through.py]
+        env:
+        - name: PULP_API
+          value: http://pulp.infrastructure.svc.cluster.local:24817
+        - name: PULP_USER
+          value: admin
+        - name: PULP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: admin-password
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: script
+          mountPath: /opt/pull-through.py
+          subPath: pull-through.py
+      volumes:
+      - name: script
+        configMap:
+          name: pulp-pull-through
+          defaultMode: 0555

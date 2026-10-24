@@ -1,0 +1,158 @@
+# Tuleap Community Edition. One replica, Recreate, /data on the
+# hoard-drake export.
+#
+# Image tuleap/tuleap-community-edition:latest, pushed 2026-03-26,
+# linux/amd64 only. Hub tag digest sha256:cf76fdd7… The registry
+# refused an anonymous manifest GET, so the label block was not read.
+# Pull path is the docker.io pull-through distribution.
+# Fallback, if that distribution is not created yet:
+# docker.io/tuleap/tuleap-community-edition:latest
+#
+# The image publishes 80, 443, and 22 and speaks HTTPS itself. Caddy
+# terminates the public certificate and proxies to 443 without
+# verifying the container certificate.
+# https://docs.tuleap.com/installation-guide/docker/docker_compose.html
+# https://docs.tuleap.com/installation-guide/docker/images-configuration.html
+# https://docs.tuleap.com/installation-guide/docker/intro_docker.html
+#
+# No runAsNonRoot. The image starts sshd, nginx, and supervisord, and
+# the compose file does not set a user.
+#
+# The requirements page does not publish a RAM or CPU number. It asks
+# for a dedicated x86_64 server. The requests below are a small
+# personal instance: 2 Gi for Tuleap and 1 Gi for MySQL. Raise the
+# limits if the first boot is OOMKilled.
+# https://docs.tuleap.com/installation-guide/step-by-step/requirements.html
+#
+# TODO Kubernetes & Docker #35 (https://tasks.stealthdragonland.net/tasks/172):
+# Tuleap needs a mysqldump --single-transaction of its database plus
+# an archive of /data. This change does not add that CronJob and does
+# not change the backup image.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tuleap
+  name: tuleap
+  labels:
+    app: tuleap
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: tuleap
+  template:
+    metadata:
+      labels:
+        role: tuleap
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      hostname: tuleap.stealthdragonland.net
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      # Same capacity note as tuleap-mysql. Uncomment to pin Tuleap
+      # to hoard-drake. Do not add a taint in this change.
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: In
+      #           values: [hoard-drake]
+      initContainers:
+      - name: wait-mysql
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        - -c
+        - until mysqladmin ping -h tuleap-mysql -uroot --silent; do sleep 2; done
+        env:
+        - name: MYSQL_PWD
+          valueFrom:
+            secretKeyRef:
+              name: tuleap-database
+              key: root-password
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      containers:
+      - name: tuleap
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/tuleap/tuleap-community-edition@sha256:cf76fdd71b720a202d94b1053ed4069a1c8fec14bf93c143ede2820c3cd67b51
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: TULEAP_FQDN
+          value: tuleap.stealthdragonland.net
+        - name: TULEAP_SYS_DBHOST
+          value: tuleap-mysql
+        - name: DB_ADMIN_USER
+          value: root
+        - name: DB_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuleap-database
+              key: root-password
+        - name: TULEAP_SYS_DBPASSWD
+          valueFrom:
+            secretKeyRef:
+              name: tuleap-database
+              key: app-password
+        - name: SITE_ADMINISTRATOR_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuleap-admin
+              key: site-administrator-password
+        ports:
+        - name: https
+          containerPort: 443
+          protocol: TCP
+        - name: ssh
+          containerPort: 22
+          protocol: TCP
+        startupProbe:
+          httpGet:
+            path: /
+            port: https
+            scheme: HTTPS
+          periodSeconds: 15
+          failureThreshold: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: https
+            scheme: HTTPS
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: https
+            scheme: HTTPS
+          periodSeconds: 30
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+          limits:
+            cpu: '2'
+            memory: 4Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/tuleap/data
