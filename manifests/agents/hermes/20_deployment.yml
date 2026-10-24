@@ -37,6 +37,8 @@ spec:
         role: hermes
     spec:
       automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
       securityContext:
         runAsNonRoot: true
         runAsUser: 10000
@@ -45,8 +47,10 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       initContainers:
+      # Screen tools and pass-cli 2.5.1 are built by docker-images hermes/.
+      # The tag is loaded into each node's containerd. It is not published.
       - name: seed-config
-        image: nousresearch/hermes-agent:v0.22.2@sha256:36099926da316742423544e055d4734777105ffe6341873af5459b957d0c2919
+        image: ghcr.io/dragoncrafted87/hermes-agent:v0.22.2-screen
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
@@ -93,7 +97,7 @@ spec:
           readOnly: true
       containers:
       - name: hermes
-        image: nousresearch/hermes-agent:v0.22.2@sha256:36099926da316742423544e055d4734777105ffe6341873af5459b957d0c2919
+        image: ghcr.io/dragoncrafted87/hermes-agent:v0.22.2-screen
         imagePullPolicy: IfNotPresent
         args: [gateway, run]
         securityContext:
