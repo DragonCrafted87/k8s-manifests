@@ -47,7 +47,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       initContainers:
-      # image/Dockerfile adds the screen packages and pass-cli 2.5.1.
+      # Screen tools and pass-cli 2.5.1 are built by docker-images hermes/.
       # The tag is loaded into each node's containerd. It is not published.
       - name: seed-config
         image: ghcr.io/dragoncrafted87/hermes-agent:v0.22.2-screen
