@@ -1,12 +1,11 @@
 # Tuleap Community Edition. One replica, Recreate, /data on the
 # hoard-drake export.
 #
-# Image tuleap/tuleap-community-edition:latest, pushed 2026-03-26,
-# linux/amd64 only. Hub tag digest sha256:cf76fdd7… The registry
-# refused an anonymous manifest GET, so the label block was not read.
-# Pulp pull-through answers NAME_UNKNOWN unless the client is
-# logged in, so this pod uses the upstream digest.
-# docker.io/tuleap/tuleap-community-edition:latest
+# Built from the Software Heritage 17.4 snapshot. Docker Hub and
+# ci.tuleap.net no longer serve Community Edition. The image name
+# stays tuleap-ce until the trademark rename.
+# pulp.stealthdragonland.net/tuleap-ce:17.4.99.1792880291
+# Legacy MediaWiki 1.23 is not in this image. mediawiki_standalone is.
 #
 # The image publishes 80, 443, and 22 and speaks HTTPS itself. Caddy
 # terminates the public certificate and proxies to 443 without
@@ -84,8 +83,7 @@ spec:
             memory: 256Mi
       containers:
       - name: tuleap
-        # yamllint disable-line rule:line-length
-        image: docker.io/tuleap/tuleap-community-edition@sha256:cf76fdd71b720a202d94b1053ed4069a1c8fec14bf93c143ede2820c3cd67b51
+        image: pulp.stealthdragonland.net/tuleap-ce:17.4.99.1792880291
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
