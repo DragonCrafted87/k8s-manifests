@@ -4,8 +4,8 @@
 # Image tuleap/tuleap-community-edition:latest, pushed 2026-03-26,
 # linux/amd64 only. Hub tag digest sha256:cf76fdd7… The registry
 # refused an anonymous manifest GET, so the label block was not read.
-# Pull path is the docker.io pull-through distribution.
-# Fallback, if that distribution is not created yet:
+# Pulp pull-through answers NAME_UNKNOWN unless the client is
+# logged in, so this pod uses the upstream digest.
 # docker.io/tuleap/tuleap-community-edition:latest
 #
 # The image publishes 80, 443, and 22 and speaks HTTPS itself. Caddy
@@ -47,7 +47,8 @@ spec:
     spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      hostname: tuleap.stealthdragonland.net
+      # spec.hostname is a DNS label. The public name is TULEAP_FQDN.
+      hostname: tuleap
       nodeSelector:
         kubernetes.io/arch: amd64
       # Same capacity note as tuleap-mysql. Uncomment to pin Tuleap
@@ -62,8 +63,7 @@ spec:
       #           values: [hoard-drake]
       initContainers:
       - name: wait-mysql
-        # yamllint disable-line rule:line-length
-        image: pulp.stealthdragonland.net/docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+        image: docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
         imagePullPolicy: IfNotPresent
         command:
         - bash
@@ -85,7 +85,7 @@ spec:
       containers:
       - name: tuleap
         # yamllint disable-line rule:line-length
-        image: pulp.stealthdragonland.net/docker.io/tuleap/tuleap-community-edition@sha256:cf76fdd71b720a202d94b1053ed4069a1c8fec14bf93c143ede2820c3cd67b51
+        image: docker.io/tuleap/tuleap-community-edition@sha256:cf76fdd71b720a202d94b1053ed4069a1c8fec14bf93c143ede2820c3cd67b51
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ

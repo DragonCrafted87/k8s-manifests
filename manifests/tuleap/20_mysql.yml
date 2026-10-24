@@ -6,16 +6,14 @@
 #
 # Upstream tag mysql:8.4.13 is the index digest below (linux/amd64
 # child sha256:2068651a18ac6048578647ea57b940ca2daed3f504ebe7fba6a93beeb39aaa1f).
-# The pull goes through the docker.io pull-through distribution.
-# Fallback, if that distribution is not created yet:
-# docker.io/library/mysql:8.4.13
+# Pulp pull-through answers NAME_UNKNOWN for an anonymous pull. The
+# registry view requires a logged-in user, so kubelet cannot use the
+# Pulp path. This pin is the upstream digest.
 #
-# InnoDB on the hoard-drake NFS export is the risky part. lockd and
-# nlockmgr are up, and the live Pulp Postgres mount is nfs4.2, hard,
-# local_lock=none, but MySQL still warns that NFS is a poor InnoDB
-# store. Native AIO and O_DIRECT fail on NFS, so those two settings
-# are off. A local-path volume is the alternative if the first boot
-# logs I/O errors. It is commented under the volume.
+# The first NFS init wrote redo files and then InnoDB aborted with
+# "data files are corrupt or the database was not shut down cleanly".
+# Data is the local-path claim tuleap-mysql. The claim bound on
+# hoard-drake. Native AIO stays off.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,8 +55,7 @@ spec:
         fsGroup: 999
       containers:
       - name: mysql
-        # yamllint disable-line rule:line-length
-        image: pulp.stealthdragonland.net/docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+        image: docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
         imagePullPolicy: IfNotPresent
         args:
         - --character-set-server=utf8mb4
@@ -107,12 +104,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/mysql
-      # local-path alternative, if InnoDB reports NFS I/O errors.
-      # Create the directory on hoard-drake only, keep the pod pinned
-      # to that node, and replace the nfs volume with a
-      # persistentVolumeClaim named tuleap-mysql.
       volumes:
       - name: data
-        nfs:
-          server: hoard-drake.stealthdragonland.net
-          path: /srv/data/tuleap/mysql
+        persistentVolumeClaim:
+          claimName: tuleap-mysql
