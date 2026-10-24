@@ -66,6 +66,11 @@ spec:
         env:
         - name: TZ
           value: America/Chicago
+        # The image creates root@localhost unless this is set at first
+        # init. This volume was already initialized, so root@% was
+        # granted on the running server as well.
+        - name: MYSQL_ROOT_HOST
+          value: '%'
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
