@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: calligraphy-backups
+  namespace: tuleap
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: smb-static
+  volumeName: calligraphy-backups-tuleap
+  resources:
+    requests:
+      storage: 1Ti

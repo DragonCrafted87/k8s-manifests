@@ -1,0 +1,118 @@
+# Dedicated MySQL 8.4 for Tuleap. Do not point another app at this
+# Service. Tuleap rejects any sql_mode other than
+# NO_ENGINE_SUBSTITUTION, and it requires utf8mb4.
+# https://docs.tuleap.com/installation-guide/docker/docker_compose.html
+# https://docs.tuleap.com/installation-guide/step-by-step/prepare-database.html
+#
+# Upstream tag mysql:8.4.13 is the index digest below (linux/amd64
+# child sha256:2068651a18ac6048578647ea57b940ca2daed3f504ebe7fba6a93beeb39aaa1f).
+# The pull goes through the docker.io pull-through distribution.
+# Fallback, if that distribution is not created yet:
+# docker.io/library/mysql:8.4.13
+#
+# InnoDB on the hoard-drake NFS export is the risky part. lockd and
+# nlockmgr are up, and the live Pulp Postgres mount is nfs4.2, hard,
+# local_lock=none, but MySQL still warns that NFS is a poor InnoDB
+# store. Native AIO and O_DIRECT fail on NFS, so those two settings
+# are off. A local-path volume is the alternative if the first boot
+# logs I/O errors. It is commented under the volume.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tuleap
+  name: tuleap-mysql
+  labels:
+    app: tuleap-mysql
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: tuleap-mysql
+  template:
+    metadata:
+      labels:
+        role: tuleap-mysql
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      # hoard-drake has the RAM (about 57 Gi available on 2026-10-23)
+      # and the pods already there are small. Uncomment to pin MySQL
+      # beside the export. Do not add a taint in this change.
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: In
+      #           values: [hoard-drake]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: mysql
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+        imagePullPolicy: IfNotPresent
+        args:
+        - --character-set-server=utf8mb4
+        - --collation-server=utf8mb4_unicode_ci
+        - --sql-mode=NO_ENGINE_SUBSTITUTION
+        - --innodb-use-native-aio=0
+        - --innodb-flush-method=fsync
+        env:
+        - name: TZ
+          value: America/Chicago
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuleap-database
+              key: root-password
+        - name: MYSQL_PWD
+          valueFrom:
+            secretKeyRef:
+              name: tuleap-database
+              key: root-password
+        ports:
+        - name: mysql
+          containerPort: 3306
+          protocol: TCP
+        startupProbe:
+          exec:
+            command: [mysqladmin, ping, -h, 127.0.0.1, -uroot, --silent]
+          periodSeconds: 10
+          failureThreshold: 30
+        readinessProbe:
+          exec:
+            command: [mysqladmin, ping, -h, 127.0.0.1, -uroot, --silent]
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: [mysqladmin, ping, -h, 127.0.0.1, -uroot, --silent]
+          periodSeconds: 20
+          failureThreshold: 6
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+      # local-path alternative, if InnoDB reports NFS I/O errors.
+      # Create the directory on hoard-drake only, keep the pod pinned
+      # to that node, and replace the nfs volume with a
+      # persistentVolumeClaim named tuleap-mysql.
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/tuleap/mysql
