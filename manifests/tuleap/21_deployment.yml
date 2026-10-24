@@ -24,10 +24,8 @@
 # limits if the first boot is OOMKilled.
 # https://docs.tuleap.com/installation-guide/step-by-step/requirements.html
 #
-# TODO Kubernetes & Docker #35 (https://tasks.stealthdragonland.net/tasks/172):
-# Tuleap needs a mysqldump --single-transaction of its database plus
-# an archive of /data. This change does not add that CronJob and does
-# not change the backup image.
+# Backups: tuleap-backup-job dumps database tuleap, and
+# tuleap-data-backup-job archives /data. The image is unchanged.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

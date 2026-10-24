@@ -96,3 +96,27 @@ spec:
     nodeStageSecretRef:
       name: cifs-secret
       namespace: storage
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: calligraphy-backups-tuleap
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb-static
+  mountOptions:
+  - dir_mode=0755
+  - file_mode=0644
+  - noperm
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: calligraphy-backups-tuleap
+    volumeAttributes:
+      source: //calligraphy-wyrm.stealthdragonland.net/Backups/K8s
+    nodeStageSecretRef:
+      name: cifs-secret
+      namespace: storage

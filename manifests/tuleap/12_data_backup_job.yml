@@ -1,0 +1,56 @@
+# Archive of /data. The mysql method writes the dump alone, so the
+# files are their own set. The tar fails while the directory is empty.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tuleap-data-backup-job
+  namespace: tuleap
+  labels:
+    app: tuleap-data-backup-job
+spec:
+  schedule: 20 5 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: tuleap-data-backup-job
+        spec:
+          containers:
+          - name: tuleap-data-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: tuleap-data
+            - name: BACKUP_METHOD
+              value: tar
+            - name: BACKUP_PRUNE
+              value: apply
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: '1'
+                memory: 1Gi
+            volumeMounts:
+            - name: data
+              mountPath: /mnt/source
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: tuleap-data
+          restartPolicy: OnFailure
+          volumes:
+          - name: data
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/tuleap/data
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

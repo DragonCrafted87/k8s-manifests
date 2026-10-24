@@ -1,0 +1,62 @@
+# mysqldump --single-transaction of the main database. The image
+# dumps one database and does not copy BACKUP_EXTRA on this method.
+# Tuleap's main database is tuleap. Plugin databases are separate.
+# https://docs.tuleap.com/administration-guide/system-administration/backup.html
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tuleap-backup-job
+  namespace: tuleap
+  labels:
+    app: tuleap-backup-job
+spec:
+  schedule: 45 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: tuleap-backup-job
+        spec:
+          containers:
+          - name: tuleap-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: tuleap
+            - name: BACKUP_METHOD
+              value: mysql
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: MYSQL_HOST
+              value: tuleap-mysql
+            - name: MYSQL_USER
+              value: root
+            - name: MYSQL_DATABASE
+              value: tuleap
+            - name: MYSQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: tuleap-database
+                  key: root-password
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: '1'
+                memory: 1Gi
+            volumeMounts:
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: tuleap
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups
