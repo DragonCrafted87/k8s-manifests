@@ -47,7 +47,8 @@ spec:
     spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      hostname: tuleap.stealthdragonland.net
+      # spec.hostname is a DNS label. The public name is TULEAP_FQDN.
+      hostname: tuleap
       nodeSelector:
         kubernetes.io/arch: amd64
       # Same capacity note as tuleap-mysql. Uncomment to pin Tuleap
