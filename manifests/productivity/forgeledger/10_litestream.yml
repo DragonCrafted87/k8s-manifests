@@ -1,0 +1,53 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgeledger-litestream
+  namespace: productivity
+data:
+  litestream.yml: |
+    snapshot:
+      interval: 1h
+      retention: 168h
+    dbs:
+      - path: /data/forgeledger.sqlite
+        replica:
+          type: file
+          path: /replica
+  restore.sh: |
+    #!/bin/sh
+    # A replica with files is the only source. The seed is the pre-cutover
+    # copy and is used only when that replica has no files yet.
+    set -eu
+    db=/data/forgeledger.sqlite
+    config=/restore/litestream.yml
+    seed=/seed/forgeledger.sqlite
+    replica=/replica
+    litestream restore \
+        -config "$config" \
+        -if-replica-exists \
+        -o "$db" \
+        "$db"
+    if [ -s "$db" ]; then
+        exit 0
+    fi
+    rm -f "$db" "${db}-wal" "${db}-shm"
+    if [ -n "$(find "$replica" -type f -print -quit)" ]; then
+        echo "litestream replica has files but restore wrote no database" >&2
+        exit 1
+    fi
+    if [ ! -s "$seed" ]; then
+        echo "no litestream replica and no seed database at ${seed}" >&2
+        exit 1
+    fi
+    copy=/tmp/forgeledger-seed.db
+    rm -f "$copy" "${copy}-wal" "${copy}-shm"
+    cp "$seed" "$copy"
+    if [ -f "${seed}-wal" ]; then
+        cp "${seed}-wal" "${copy}-wal"
+    fi
+    if [ -f "${seed}-shm" ]; then
+        cp "${seed}-shm" "${copy}-shm"
+    fi
+    sqlite3 "$copy" ".backup '${db}'"
+    test -s "$db"
