@@ -1,0 +1,92 @@
+# Image is linux/amd64 only and is published only to the in-cluster
+# Pulp registry. The tag is dev, so pull every start.
+# Sign-in needs HTTPS. Caddy terminates TLS for
+# forgeledger.stealthdragonland.net. The session cookie is Secure.
+# The login-form CSRF fix is still open, so that name stays on the LAN.
+# Admin password is the existing Secret forgeledger-admin, key
+# password. It is not in git. The server does not read it. Admin
+# commands do, through FL_ADMIN_PASSWORD_FILE.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: productivity
+  name: forgeledger
+  labels:
+    app: forgeledger
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: forgeledger
+  template:
+    metadata:
+      labels:
+        role: forgeledger
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: forgeledger
+        image: pulp.stealthdragonland.net/forgeledger:dev
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: FL_BASE_URL
+          value: https://forgeledger.stealthdragonland.net
+        - name: FL_TIMEZONE
+          value: America/Chicago
+        - name: FL_ADMIN_PASSWORD_FILE
+          value: /run/secrets/fl/password
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 30
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+        - name: admin
+          mountPath: /run/secrets/fl
+          readOnly: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: forgeledger-data
+      - name: tmp
+        emptyDir: {}
+      - name: admin
+        secret:
+          secretName: forgeledger-admin

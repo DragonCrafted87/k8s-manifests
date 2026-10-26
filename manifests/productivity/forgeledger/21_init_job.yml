@@ -1,0 +1,73 @@
+# One-shot. Run this before the Deployment, on an empty volume.
+# It creates the user dragon, the FL project, and a bootstrap API
+# token. The token is printed once in the Job log. Copy it, then
+# delete the Job so the log goes with it. A second run exits in
+# error because init refuses a database that already has a user.
+# Do not leave this Job applied across a later kubectl apply of
+# this file: that starts it again.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: productivity
+  name: forgeledger-init
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: init
+        image: pulp.stealthdragonland.net/forgeledger:dev
+        imagePullPolicy: Always
+        args:
+        - admin
+        - init
+        - --username
+        - dragon
+        - --email
+        - scott.gudeman@dragoncrafted87.dev
+        - --project-key
+        - FL
+        - --project-label
+        - ForgeLedger
+        - --template
+        - kanban
+        env:
+        - name: FL_ADMIN_PASSWORD_FILE
+          value: /run/secrets/fl/password
+        - name: FL_TIMEZONE
+          value: America/Chicago
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+        - name: admin
+          mountPath: /run/secrets/fl
+          readOnly: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: forgeledger-data
+      - name: tmp
+        emptyDir: {}
+      - name: admin
+        secret:
+          secretName: forgeledger-admin

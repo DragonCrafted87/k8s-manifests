@@ -1,0 +1,16 @@
+# SQLite lives on this volume. local-path is a block volume on one
+# node. Do not move it to NFS. One pod at a time: the Deployment
+# uses Recreate, and the init Job must be gone before the
+# Deployment starts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: productivity
+  name: forgeledger-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
