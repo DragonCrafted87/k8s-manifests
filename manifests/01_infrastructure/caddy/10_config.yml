@@ -134,3 +134,24 @@ data:
         respond "Forbidden" 403
       }
     }
+    # Forgeledger speaks plain HTTP. Caddy owns the certificate.
+    # The session cookie is Secure, so the name stays HTTPS.
+    # The login-form CSRF fix is still open, so this name stays
+    # on the LAN. 192.168.0.1 is the vpn-relay source.
+    forgeledger.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
+      handle @lan {
+        reverse_proxy http://forgeledger.productivity.svc.cluster.local:8080 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto https
+          header_up X-Real-IP {remote_host}
+        }
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }

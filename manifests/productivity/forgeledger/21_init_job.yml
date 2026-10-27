@@ -1,0 +1,72 @@
+# One-shot, and already run. The database it created is the seed at
+# /srv/data/forgeledger/db/forgeledger.sqlite. Do not apply this Job
+# again. Init refuses a database that already has a user, and this
+# file mounts that seed. The live database is the emptyDir the
+# Deployment restores. This Job does not share that emptyDir.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: productivity
+  name: forgeledger-init
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: init
+        image: pulp.stealthdragonland.net/forgeledger:dev
+        imagePullPolicy: Always
+        args:
+        - admin
+        - init
+        - --username
+        - dragon
+        - --email
+        - scott.gudeman@dragoncrafted87.dev
+        - --project-key
+        - FL
+        - --project-label
+        - ForgeLedger
+        - --template
+        - kanban
+        env:
+        - name: FL_ADMIN_PASSWORD_FILE
+          value: /run/secrets/fl/password
+        - name: FL_TIMEZONE
+          value: America/Chicago
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+        - name: admin
+          mountPath: /run/secrets/fl
+          readOnly: true
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/forgeledger/db
+      - name: tmp
+        emptyDir: {}
+      - name: admin
+        secret:
+          secretName: forgeledger-admin

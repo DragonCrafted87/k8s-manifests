@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: forgeledger-backup-job
+  namespace: storage
+  labels:
+    app: forgeledger-backup-job
+spec:
+  schedule: 0 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: forgeledger-backup-job
+        spec:
+          containers:
+          - name: forgeledger-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: forgeledger
+            - name: BACKUP_METHOD
+              value: litestream
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: LITESTREAM_DB
+              value: /data/forgeledger.sqlite
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
+            - name: BACKUP_EXTRA
+              value: /mnt/extra
+            volumeMounts:
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
+            - name: files
+              mountPath: /mnt/extra/files
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: forgeledger
+          restartPolicy: OnFailure
+          volumes:
+          - name: replica
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/forgeledger/replica
+          - name: files
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/forgeledger/files
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

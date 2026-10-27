@@ -1,0 +1,146 @@
+# Image is linux/amd64 only and is published only to the in-cluster
+# Pulp registry. The tag is dev, so pull every start.
+# Sign-in needs HTTPS. Caddy terminates TLS for
+# forgeledger.stealthdragonland.net. The session cookie is Secure.
+# The login-form CSRF fix is still open, so that name stays on the LAN.
+# Admin password is the existing Secret forgeledger-admin, key
+# password. It is not in git.
+#
+# The live database is an emptyDir. Litestream replicates it to
+# /srv/data/forgeledger/replica. Uploads stay on
+# /srv/data/forgeledger/files. The seed directory holds the database
+# from before the first replica existed. SQLite does not run on NFS.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: productivity
+  name: forgeledger
+  labels:
+    app: forgeledger
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: forgeledger
+  template:
+    metadata:
+      labels:
+        role: forgeledger
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - name: restore-db
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        command: [/bin/sh, /restore/restore.sh]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: replica
+          mountPath: /replica
+        - name: seed
+          mountPath: /seed
+          readOnly: true
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
+      containers:
+      - name: forgeledger
+        image: pulp.stealthdragonland.net/forgeledger:dev
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: FL_BASE_URL
+          value: https://forgeledger.stealthdragonland.net
+        - name: FL_TIMEZONE
+          value: America/Chicago
+        - name: FL_ADMIN_PASSWORD_FILE
+          value: /run/secrets/fl/password
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 30
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            memory: 256Mi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: files
+          mountPath: /data/files
+        - name: tmp
+          mountPath: /tmp
+        - name: admin
+          mountPath: /run/secrets/fl
+          readOnly: true
+      - name: litestream
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        args: [replicate, -config, /restore/litestream.yml]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
+      volumes:
+      - name: data
+        emptyDir: {}
+      - name: files
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/forgeledger/files
+      - name: replica
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/forgeledger/replica
+      - name: seed
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/forgeledger/db
+      - name: litestream
+        configMap:
+          name: forgeledger-litestream
+      - name: tmp
+        emptyDir: {}
+      - name: admin
+        secret:
+          secretName: forgeledger-admin
