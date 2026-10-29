@@ -27,7 +27,7 @@ import urllib.parse
 import urllib.request
 
 API = os.environ.get(
-    "PULP_API", "http://pulp.infrastructure.svc.cluster.local:24817"
+    "PULP_API", "http://pulp-tcp.infrastructure.svc.cluster.local:24817"
 ).rstrip("/")
 USER = os.environ.get("PULP_USER", "admin")
 PASSWORD = os.environ.get("PULP_PASSWORD")

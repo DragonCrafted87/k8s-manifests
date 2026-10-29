@@ -24,10 +24,10 @@ spec:
           - name: rpm-cache
             image: pulp/pulp:3.85.32
             imagePullPolicy: IfNotPresent
-            command: [python3, /opt/rpm-cache.py, sync]
+            command: [python3, -u, /opt/rpm-cache.py, sync]
             env:
             - name: PULP_API
-              value: http://pulp.infrastructure.svc.cluster.local:24817
+              value: http://pulp-tcp.infrastructure.svc.cluster.local:24817
             - name: PULP_USER
               value: admin
             - name: PULP_PASSWORD
