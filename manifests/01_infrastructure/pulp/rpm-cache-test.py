@@ -34,7 +34,14 @@ class Api:
         if method == "GET" and path.startswith(rpm_cache.REMOTES):
             return 200, {"results": list(self.remotes.values())}
         if method == "GET" and path.startswith(rpm_cache.REPOSITORIES):
-            return 200, {"results": list(self.repositories.values())}
+            tail = path[len(rpm_cache.REPOSITORIES):]
+            if tail == "" or tail.startswith("?"):
+                return 200, {"results": list(self.repositories.values())}
+            name = tail.split("?", 1)[0].strip("/")
+            repo = self.repositories.get(name)
+            if repo is None:
+                fail(f"missing repository {name}")
+            return 200, repo
         if method == "GET" and path.startswith(rpm_cache.DISTRIBUTIONS):
             return 200, {"results": list(self.distributions.values())}
         if method == "POST" and path == rpm_cache.REMOTES:
@@ -95,7 +102,7 @@ class Api:
             name = path.rstrip("/").split("/")[-1]
             self.posts.append(("patch", body))
             self.repositories[name]["autopublish"] = True
-            return 200, self.repositories[name]
+            return 202, {"task": f"/pulp/api/v3/tasks/{name}-patch/"}
         fail(f"unexpected {method} {path}")
 
 

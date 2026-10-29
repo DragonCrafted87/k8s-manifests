@@ -272,13 +272,24 @@ def post_sync(repo, remote, policy):
 
 
 def enable_autopublish(repo):
-    """Turn autopublish on so mirror_content_only publishes metadata."""
+    """Turn autopublish on so mirror_content_only publishes metadata.
+
+    A completed PATCH task creates nothing. unwrap() treats that as a failure.
+    """
     status, payload = request(
         "PATCH", repo["pulp_href"], {"autopublish": True}
     )
-    updated = unwrap(status, payload)
-    if isinstance(updated, dict) and updated.get("name"):
+    if status == 202 or (isinstance(payload, dict) and payload.get("task")):
+        task = wait_task(payload["task"])
+        if task.get("state") != "completed":
+            fail(
+                f"Pulp task {payload['task']} {task.get('state')}: "
+                f"{task.get('error')}"
+            )
+        _status, updated = request("GET", repo["pulp_href"])
         return updated
+    if isinstance(payload, dict) and payload.get("name"):
+        return payload
     repo = dict(repo)
     repo["autopublish"] = True
     return repo
