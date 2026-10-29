@@ -165,6 +165,8 @@ def same_url(left, right):
 def refusal(error):
     """True when Pulp rejected mirror_complete for this repository."""
     text = json.dumps(error).lower()
+    if "incompatible with 'mirror' sync" in text or "incompatible with mirror" in text:
+        return True
     if "mirror_complete" not in text:
         return False
     marks = ("not supported", "cannot", "unable", "incompatible", "refused")

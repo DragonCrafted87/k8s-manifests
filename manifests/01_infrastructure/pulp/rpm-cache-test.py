@@ -79,7 +79,10 @@ class Api:
                 return 200, {
                     "state": "failed",
                     "error": {
-                        "description": "mirror_complete is not supported for this repository"
+                        "description": (
+                            "This repository uses features which are incompatible "
+                            "with 'mirror' sync. Please sync without mirroring enabled."
+                        )
                     },
                 }
             if path.endswith("-fail/"):
