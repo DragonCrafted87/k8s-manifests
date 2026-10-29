@@ -1,0 +1,385 @@
+---
+# yamllint disable rule:indentation
+# yamllint disable rule:line-length
+# Copy of rpm-cache.py. Apply this file to create the cache and sync it once.
+# It talks to the Pulp API in-cluster and does not print the password.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulp-rpm-cache
+  namespace: infrastructure
+data:
+  rpm-cache.py: |
+    #!/usr/bin/env python3
+    """Create Pulp on-demand RPM remotes and sync their metadata.
+
+    Pulp RPM has no pull-through distribution. Each row is a remote with
+    policy on_demand, a repository, a distribution, and a sync. The sync
+    stores metadata. The content app downloads an RPM when a client asks
+    for it.
+
+    `python3 rpm-cache.py` creates missing objects, then syncs.
+    `python3 rpm-cache.py sync` only syncs. A missing object stops that
+    run. An existing remote whose URL differs stops the run before a sync.
+
+    A repository that refuses mirror_complete is retried once as
+    mirror_content_only with autopublish. Any other sync failure stops
+    the run.
+
+    Credentials come from the environment, not from this file.
+    """
+
+    import base64
+    import json
+    import os
+    import sys
+    import time
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    API = os.environ.get(
+        "PULP_API", "http://pulp.infrastructure.svc.cluster.local:24817"
+    ).rstrip("/")
+    USER = os.environ.get("PULP_USER", "admin")
+    PASSWORD = os.environ.get("PULP_PASSWORD")
+
+    CONTENT = "https://pulp.stealthdragonland.net/pulp/content"
+    MIRROR = "http://mirror.openmandriva.org/rock/repository"
+
+    REMOTES = "/pulp/api/v3/remotes/rpm/rpm/"
+    REPOSITORIES = "/pulp/api/v3/repositories/rpm/rpm/"
+    DISTRIBUTIONS = "/pulp/api/v3/distributions/rpm/rpm/"
+
+    # name, upstream URL, distribution base path
+    ROCK_COMPONENTS = (
+        ("main", "release", ""),
+        ("main", "updates", "updates-"),
+        ("extra", "release", ""),
+        ("extra", "updates", "updates-"),
+        ("restricted", "release", ""),
+        ("restricted", "updates", "updates-"),
+        ("non-free", "release", ""),
+        ("non-free", "updates", "updates-"),
+    )
+
+
+    def rock_rows():
+        """Return the Rock repositories enable-rock-repos.sh enables."""
+        rows = []
+        for arch in ("znver1", "x86_64"):
+            for component, stream, updates in ROCK_COMPONENTS:
+                # rock-znver1, rock-updates-znver1, rock-znver1-extra,
+                # rock-updates-znver1-extra, and the restricted / non-free pairs.
+                if component == "main":
+                    name = f"rock-{updates}{arch}"
+                else:
+                    name = f"rock-{updates}{arch}-{component}"
+                url = f"{MIRROR}/{arch}/{component}/{stream}/"
+                base_path = f"rock/{arch}/{component}/{stream}"
+                rows.append((name, url, base_path))
+        return tuple(rows)
+
+
+    REPOS = rock_rows() + (
+        (
+            "brave-browser",
+            "https://brave-browser-rpm-release.s3.brave.com/x86_64/",
+            "brave/x86_64",
+        ),
+        (
+            "vscode",
+            "https://packages.microsoft.com/yumrepos/vscode/",
+            "vscode",
+        ),
+        (
+            "adoptium-rhel9-x86_64",
+            "https://packages.adoptium.net/artifactory/rpm/rhel/9/x86_64/",
+            "adoptium/rhel/9/x86_64",
+        ),
+    )
+
+
+    def fail(message):
+        """Exit with a message that does not include the password."""
+        sys.exit(message)
+
+
+    def request(method, path, body=None):
+        """Call the Pulp API and return the status and decoded JSON body."""
+        if not PASSWORD:
+            fail("Set PULP_PASSWORD.")
+        data = json.dumps(body).encode() if body is not None else None
+        basic = base64.b64encode(f"{USER}:{PASSWORD}".encode()).decode()
+        req = urllib.request.Request(
+            API + path,
+            data=data,
+            method=method,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Basic {basic}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                raw = resp.read()
+                status = resp.status
+        except urllib.error.HTTPError as err:
+            detail = err.read().decode(errors="replace")[:500]
+            fail(f"Pulp {method} {path} failed: {err.code} {detail}")
+        if not raw:
+            return status, {}
+        return status, json.loads(raw)
+
+
+    def wait_task(href):
+        """Poll a Pulp task until it finishes and return its payload."""
+        path = href if href.startswith("/") else "/" + href
+        for _ in range(360):
+            _status, task = request("GET", path)
+            state = task.get("state")
+            if state in ("completed", "failed", "canceled"):
+                return task
+            time.sleep(5)
+        fail(f"Pulp task {path} did not finish.")
+
+
+    def unwrap(status, payload):
+        """Return the created object, following a 202 task when Pulp queued one."""
+        if status == 202 or (isinstance(payload, dict) and payload.get("task")):
+            task = wait_task(payload["task"])
+            if task.get("state") != "completed":
+                fail(f"Pulp task {payload['task']} {task.get('state')}: {task.get('error')}")
+            created = task.get("created_resources") or []
+            if not created:
+                fail("Pulp task finished without a created resource.")
+            _status, obj = request("GET", created[0])
+            return obj
+        return payload
+
+
+    def find_named(collection, name):
+        """Return the object with this name, or None."""
+        query = urllib.parse.urlencode({"name": name, "limit": 10})
+        _status, page = request("GET", f"{collection}?{query}")
+        for item in page.get("results") or []:
+            if item.get("name") == name:
+                return item
+        return None
+
+
+    def same_url(left, right):
+        """Compare repository URLs without a trailing-slash difference."""
+        return (left or "").rstrip("/") == (right or "").rstrip("/")
+
+
+    def refusal(error):
+        """True when Pulp rejected mirror_complete for this repository."""
+        text = json.dumps(error).lower()
+        if "mirror_complete" not in text:
+            return False
+        marks = ("not supported", "cannot", "unable", "incompatible", "refused")
+        return any(mark in text for mark in marks)
+
+
+    def preflight():
+        """Stop before creating or syncing when an existing object disagrees."""
+        for name, url, base_path in REPOS:
+            remote = find_named(REMOTES, name)
+            if remote is not None and not same_url(remote.get("url"), url):
+                fail(
+                    f"remote {name} exists with url {remote.get('url')}, expected {url}"
+                )
+            if remote is not None and remote.get("policy") != "on_demand":
+                fail(
+                    f"remote {name} exists with policy {remote.get('policy')}, "
+                    "expected on_demand"
+                )
+            dist = find_named(DISTRIBUTIONS, name)
+            if dist is not None and dist.get("base_path") != base_path:
+                fail(
+                    f"distribution {name} exists with base_path "
+                    f"{dist.get('base_path')}, expected {base_path}"
+                )
+
+
+    def ensure_remote(name, url, create):
+        """Return the on-demand remote, creating it when asked."""
+        remote = find_named(REMOTES, name)
+        if remote is None:
+            if not create:
+                fail(f"remote {name} is missing")
+            status, payload = request(
+                "POST",
+                REMOTES,
+                {"name": name, "url": url, "policy": "on_demand"},
+            )
+            remote = unwrap(status, payload)
+            print(f"created remote {name}")
+            return remote
+        print(f"remote {name} exists")
+        return remote
+
+
+    def ensure_repository(name, create):
+        """Return the repository, creating it when asked."""
+        repo = find_named(REPOSITORIES, name)
+        if repo is None:
+            if not create:
+                fail(f"repository {name} is missing")
+            status, payload = request(
+                "POST",
+                REPOSITORIES,
+                {"name": name, "autopublish": False, "retain_repo_versions": 2},
+            )
+            repo = unwrap(status, payload)
+            print(f"created repository {name}")
+            return repo
+        print(f"repository {name} exists")
+        return repo
+
+
+    def ensure_distribution(name, base_path, repository, create):
+        """Return the distribution, creating it when asked."""
+        dist = find_named(DISTRIBUTIONS, name)
+        if dist is None:
+            if not create:
+                fail(f"distribution {name} is missing")
+            status, payload = request(
+                "POST",
+                DISTRIBUTIONS,
+                {
+                    "name": name,
+                    "base_path": base_path,
+                    "repository": repository["pulp_href"],
+                },
+            )
+            dist = unwrap(status, payload)
+            print(f"created distribution {name} base_path {base_path}")
+            return dist
+        print(f"distribution {name} exists")
+        return dist
+
+
+    def post_sync(repo, remote, policy):
+        """Start a sync and return the finished task."""
+        href = repo["pulp_href"]
+        if not href.endswith("/"):
+            href += "/"
+        status, payload = request(
+            "POST",
+            href + "sync/",
+            {
+                "remote": remote["pulp_href"],
+                "sync_policy": policy,
+                "optimize": True,
+            },
+        )
+        if status == 202 or (isinstance(payload, dict) and payload.get("task")):
+            return wait_task(payload["task"])
+        fail(f"Pulp sync for {repo['name']} returned {status}")
+
+
+    def enable_autopublish(repo):
+        """Turn autopublish on so mirror_content_only publishes metadata."""
+        status, payload = request(
+            "PATCH", repo["pulp_href"], {"autopublish": True}
+        )
+        updated = unwrap(status, payload)
+        if isinstance(updated, dict) and updated.get("name"):
+            return updated
+        repo = dict(repo)
+        repo["autopublish"] = True
+        return repo
+
+
+    def sync_one(repo, remote):
+        """Sync one repository, falling back when mirror_complete is refused."""
+        policy = "mirror_content_only" if repo.get("autopublish") else "mirror_complete"
+        task = post_sync(repo, remote, policy)
+        if task.get("state") == "completed":
+            print(f"synced {repo['name']} {policy}")
+            return
+        if policy == "mirror_complete" and refusal(task.get("error")):
+            print(f"mirror_complete refused for {repo['name']}; retrying mirror_content_only")
+            repo = enable_autopublish(repo)
+            task = post_sync(repo, remote, "mirror_content_only")
+            if task.get("state") != "completed":
+                fail(
+                    f"sync {repo['name']} mirror_content_only "
+                    f"{task.get('state')}: {task.get('error')}"
+                )
+            print(f"synced {repo['name']} mirror_content_only")
+            return
+        fail(f"sync {repo['name']} {policy} {task.get('state')}: {task.get('error')}")
+
+
+    def run(create):
+        """Create missing objects when asked, then sync every repository."""
+        preflight()
+        for name, url, base_path in REPOS:
+            remote = ensure_remote(name, url, create)
+            repo = ensure_repository(name, create)
+            ensure_distribution(name, base_path, repo, create)
+            sync_one(repo, remote)
+
+
+    def main(argv):
+        """Create objects, or only sync when the argument is sync."""
+        create = True
+        if len(argv) > 1:
+            if argv[1] != "sync" or len(argv) > 2:
+                fail("Use no arguments, or sync.")
+            create = False
+        run(create)
+
+
+    if __name__ == "__main__":
+        main(sys.argv)
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: infrastructure
+  name: pulp-rpm-cache
+  labels:
+    app: pulp-rpm-cache
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 21600
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+      - name: rpm-cache
+        image: pulp/pulp:3.85.32
+        imagePullPolicy: IfNotPresent
+        command: [python3, /opt/rpm-cache.py]
+        env:
+        - name: PULP_API
+          value: http://pulp.infrastructure.svc.cluster.local:24817
+        - name: PULP_USER
+          value: admin
+        - name: PULP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-secret
+              key: admin-password
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: script
+          mountPath: /opt/rpm-cache.py
+          subPath: rpm-cache.py
+      volumes:
+      - name: script
+        configMap:
+          name: pulp-rpm-cache
+          defaultMode: 0555
