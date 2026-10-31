@@ -17,7 +17,9 @@ spec:
     spec:
       containers:
       - name: prayers
-        image: ghcr.io/jitesoft/lighttpd:1.4.76
+                # ghcr.io/jitesoft/lighttpd:1.4.76
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/ghcr.io/jitesoft/lighttpd@sha256:1a74266c920e90dd9dbf9d8439292ab76d65e3f183d0d8bb9719b0ff490a4eca
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
