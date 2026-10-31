@@ -18,7 +18,9 @@ spec:
         spec:
           containers:
           - name: prayers-backup
-            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            # ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            # yamllint disable-line rule:line-length
+            image: pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/alpine-backup-cron@sha256:66a02b0d97024f2f179d4a3ddf6ffcf2217598da0d5cb25a13c7e7341bb01d9a
             imagePullPolicy: IfNotPresent
             env:
             - name: TZ
