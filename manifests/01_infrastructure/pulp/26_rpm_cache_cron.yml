@@ -22,7 +22,7 @@ spec:
           restartPolicy: Never
           containers:
           - name: rpm-cache
-            image: pulp/pulp:3.85.32
+            image: pulp/pulp:3.118.5
             imagePullPolicy: IfNotPresent
             command: [python3, -u, /opt/rpm-cache.py, sync]
             env:
