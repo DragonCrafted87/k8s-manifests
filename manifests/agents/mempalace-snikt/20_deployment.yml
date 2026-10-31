@@ -1,5 +1,6 @@
-# Index digest of ghcr.io/mempalace/mempalace:latest on 2026-10-31,
-# image revision 602d796. Pulp's ghcr.io pull-through serves it.
+# amd64 manifest of ghcr.io/mempalace/mempalace:latest on 2026-10-31,
+# image revision 602d796. Pulp's ghcr.io pull-through stored this
+# platform manifest. The index digest returns MANIFEST_UNKNOWN.
 # docker-entrypoint.sh sends `serve` to `mempalace serve`.
 # The image user mempalace is uid 1000 and HOME is /data.
 # The two SQLite files are on the emptyDir. restore.sh links them
@@ -58,7 +59,7 @@ spec:
       containers:
       - name: mempalace
         # yamllint disable-line rule:line-length
-        image: pulp.stealthdragonland.net/ghcr.io/mempalace/mempalace@sha256:feee4ba49a76b94e897efef4b3b12450b1199e14b40262676e027ef9555afc22
+        image: pulp.stealthdragonland.net/ghcr.io/mempalace/mempalace@sha256:c8744e3c310f08394f29b0807eb291f0728c007a18bf4f1f404bcf2c4c5e14e9
         imagePullPolicy: IfNotPresent
         args: [serve, --host, 0.0.0.0, --port, '8765']
         securityContext:
