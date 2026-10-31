@@ -31,6 +31,11 @@ data:
     tasks.stealthdragonland.net {
       reverse_proxy 192.168.8.52:80
     }
+    # MemPalace speaks plain HTTP. Caddy terminates TLS.
+    # The bearer token is the access check.
+    mempalace-snikt.stealthdragonland.net {
+      reverse_proxy http://mempalace-snikt.agents.svc.cluster.local:8765
+    }
     weatherhub.stealthdragonland.net {
       reverse_proxy 192.168.0.102:80
     }

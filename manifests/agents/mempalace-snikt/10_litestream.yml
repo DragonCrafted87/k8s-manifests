@@ -1,0 +1,81 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mempalace-snikt-litestream
+  namespace: agents
+data:
+  litestream.yml: |
+    snapshot:
+      interval: 1h
+      retention: 168h
+    dbs:
+      - path: /db/sqlite_exact.sqlite3
+        replica:
+          type: file
+          path: /replica/palace
+      - path: /db/knowledge_graph.sqlite3
+        replica:
+          type: file
+          path: /replica/knowledge-graph
+  restore.sh: |
+    #!/bin/sh
+    # Live databases are on the emptyDir. HOME=/data keeps symlinks so
+    # MemPalace still opens its usual paths. WAL files are created
+    # beside the real files, on the emptyDir.
+    # Each replica is restored on its own. A replica with no files
+    # gets an empty WAL database. There is no older copy to seed from.
+    set -eu
+    config=/restore/litestream.yml
+    home=/data
+
+    if [ ! -d "$home" ]; then
+        echo "mempalace home ${home} is not mounted" >&2
+        exit 1
+    fi
+
+    replica_has_files() {
+        [ -d "$1" ] && [ -n "$(find "$1" -type f -print -quit)" ]
+    }
+
+    restore_one() {
+        db=$1
+        replica=$2
+        if replica_has_files "$replica"; then
+            rm -f "$db" "${db}-wal" "${db}-shm"
+            litestream restore \
+                -config "$config" \
+                -if-replica-exists \
+                -o "$db" \
+                "$db"
+            if [ ! -s "$db" ]; then
+                echo "litestream replica has files but restore wrote no database" >&2
+                exit 1
+            fi
+        else
+            sqlite3 "$db" "PRAGMA journal_mode=WAL;"
+            test -s "$db"
+        fi
+    }
+
+    link_one() {
+        dest=$1
+        src=$2
+        mkdir -p "$(dirname "$dest")"
+        if [ -L "$dest" ]; then
+            return 0
+        fi
+        if [ -e "$dest" ]; then
+            mv "$dest" "${dest}.nfs-seed"
+        fi
+        ln -s "$src" "$dest"
+    }
+
+    restore_one /db/sqlite_exact.sqlite3 /replica/palace
+    restore_one /db/knowledge_graph.sqlite3 /replica/knowledge-graph
+    link_one \
+        "$home/.mempalace/palace/sqlite_exact.sqlite3" \
+        /db/sqlite_exact.sqlite3
+    link_one \
+        "$home/.mempalace/knowledge_graph.sqlite3" \
+        /db/knowledge_graph.sqlite3
