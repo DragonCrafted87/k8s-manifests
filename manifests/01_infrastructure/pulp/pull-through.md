@@ -36,7 +36,7 @@ Here the host is `pulp.stealthdragonland.net` and the base path is
 `docker.io`:
 
 ```text
-pulp.stealthdragonland.net/docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+pulp.stealthdragonland.net/docker.io/library/mysql@sha256:2068651a18ac6048578647ea57b940ca2daed3f504ebe7fba6a93beeb39aaa1f
 pulp.stealthdragonland.net/docker.io/tuleap/tuleap-community-edition@sha256:cf76fdd71b720a202d94b1053ed4069a1c8fec14bf93c143ede2820c3cd67b51
 pulp.stealthdragonland.net/ghcr.io/<owner>/<name>:<tag>
 ```

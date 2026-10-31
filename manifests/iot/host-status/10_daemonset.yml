@@ -18,7 +18,9 @@ spec:
       - operator: Exists
       containers:
       - name: host-status
-        image: ghcr.io/dragoncrafted87/alpine-host-status:2.1.0
+        # ghcr.io/dragoncrafted87/alpine-host-status:2.1.0
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/alpine-host-status@sha256:0911c881ac3d0090cde5f7c05ddae881860df7acb50107362f6e19e97cd54d29
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
