@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mempalace-snikt-knowledge-graph-backup-job
+  namespace: storage
+  labels:
+    app: mempalace-snikt-knowledge-graph-backup-job
+spec:
+  schedule: 25 4 * * *
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: mempalace-snikt-knowledge-graph-backup-job
+        spec:
+          containers:
+          - name: mempalace-snikt-knowledge-graph-backup
+            image: ghcr.io/dragoncrafted87/alpine-backup-cron:2.2.0
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: BACKUP_NAME
+              value: mempalace-snikt-knowledge-graph
+            - name: BACKUP_METHOD
+              value: litestream
+            - name: BACKUP_PRUNE
+              value: apply
+            - name: LITESTREAM_DB
+              value: /db/knowledge_graph.sqlite3
+            - name: LITESTREAM_REPLICA
+              value: /mnt/replica
+            volumeMounts:
+            - name: replica
+              mountPath: /mnt/replica
+              readOnly: true
+            - name: backup
+              mountPath: /mnt/backups
+              subPath: mempalace/snikt/knowledge-graph
+          restartPolicy: OnFailure
+          volumes:
+          - name: replica
+            nfs:
+              server: hoard-drake.stealthdragonland.net
+              path: /srv/data/mempalace/snikt/replica/knowledge-graph
+          - name: backup
+            persistentVolumeClaim:
+              claimName: calligraphy-backups

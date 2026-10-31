@@ -1,0 +1,148 @@
+# Index digest of ghcr.io/mempalace/mempalace:latest on 2026-10-31,
+# image revision 602d796. Pulp's ghcr.io pull-through serves it.
+# docker-entrypoint.sh sends `serve` to `mempalace serve`.
+# The image user mempalace is uid 1000 and HOME is /data.
+# The two SQLite files are on the emptyDir. restore.sh links them
+# under /data/.mempalace so MemPalace opens its usual paths.
+# This image pins the Host header only for a loopback bind.
+# MEMPALACE_MCP_EXTRA_ALLOWED_HOSTS is set so a later image that
+# pins every bind still accepts the Caddy name.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: agents
+  name: mempalace-snikt
+  labels:
+    app: mempalace-snikt
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: mempalace-snikt
+  template:
+    metadata:
+      labels:
+        role: mempalace-snikt
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      - name: restore-db
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        command: [/bin/sh, /restore/restore.sh]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: data
+          mountPath: /data
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
+      containers:
+      - name: mempalace
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/ghcr.io/mempalace/mempalace@sha256:feee4ba49a76b94e897efef4b3b12450b1199e14b40262676e027ef9555afc22
+        imagePullPolicy: IfNotPresent
+        args: [serve, --host, 0.0.0.0, --port, '8765']
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        env:
+        - name: HOME
+          value: /data
+        - name: TZ
+          value: America/Chicago
+        - name: MEMPALACE_BACKEND
+          value: sqlite_exact
+        - name: MEMPALACE_MCP_EXTRA_ALLOWED_HOSTS
+          value: mempalace-snikt.stealthdragonland.net
+        - name: MEMPALACE_MCP_HTTP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: mempalace-snikt-token
+              key: token
+        ports:
+        - name: http
+          containerPort: 8765
+          protocol: TCP
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 30
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: db
+          mountPath: /db
+        - name: tmp
+          mountPath: /tmp
+      - name: litestream
+        image: litestream/litestream:0.5.17
+        imagePullPolicy: IfNotPresent
+        args: [replicate, -config, /restore/litestream.yml]
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        - name: replica
+          mountPath: /replica
+        - name: litestream
+          mountPath: /restore
+          readOnly: true
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/mempalace/snikt/home
+      - name: db
+        emptyDir: {}
+      - name: replica
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/mempalace/snikt/replica
+      - name: litestream
+        configMap:
+          name: mempalace-snikt-litestream
+      - name: tmp
+        emptyDir: {}
