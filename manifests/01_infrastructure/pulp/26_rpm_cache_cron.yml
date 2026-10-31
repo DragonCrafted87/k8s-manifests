@@ -1,0 +1,53 @@
+# Re-sync RPM cache metadata. The Job in 25_rpm_cache_job.yml creates
+# the remotes. This CronJob only runs the sync path.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pulp-rpm-cache-sync
+  namespace: infrastructure
+  labels:
+    app: pulp-rpm-cache-sync
+spec:
+  schedule: 0 */6 * * *
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 21600
+      template:
+        spec:
+          automountServiceAccountToken: false
+          restartPolicy: Never
+          containers:
+          - name: rpm-cache
+            image: pulp/pulp:3.85.32
+            imagePullPolicy: IfNotPresent
+            command: [python3, -u, /opt/rpm-cache.py, sync]
+            env:
+            - name: PULP_API
+              value: http://pulp-tcp.infrastructure.svc.cluster.local:24817
+            - name: PULP_USER
+              value: admin
+            - name: PULP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pulp-secret
+                  key: admin-password
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+            volumeMounts:
+            - name: script
+              mountPath: /opt/rpm-cache.py
+              subPath: rpm-cache.py
+          volumes:
+          - name: script
+            configMap:
+              name: pulp-rpm-cache
+              defaultMode: 0555
