@@ -13,3 +13,9 @@ of the Vikunja pilot. The database sits on the NFS volume, a
 Litestream sidecar replicates it, and a backup CronJob runs beside
 it. It does not use a local file claim. Copy the pilot's manifests
 before writing new ones.
+
+## Images
+
+A Dockerfile, or any change to what an image installs, belongs in
+the images repository (`docker-images`, the `images` submodule of
+homelab). This repository only references the tag.
