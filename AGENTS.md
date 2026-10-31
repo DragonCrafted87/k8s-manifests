@@ -19,3 +19,11 @@ before writing new ones.
 A Dockerfile, or any change to what an image installs, belongs in
 the images repository (`docker-images`, the `images` submodule of
 homelab). This repository only references the tag.
+
+## Secrets
+
+When the user creates a secret, give the command that reads the
+value without echo and without shell quoting, for example
+`read -rs PW && printf %s "$PW" | kubectl -n <ns> create secret generic <name> --from-file=<key>=/dev/stdin; unset PW`.
+Then check the stored value's length against the expected length
+without printing the value.
