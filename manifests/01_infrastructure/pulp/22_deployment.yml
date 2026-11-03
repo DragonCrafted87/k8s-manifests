@@ -7,6 +7,8 @@ metadata:
     app: pulp
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       role: pulp
@@ -15,13 +17,23 @@ spec:
       labels:
         role: pulp
     spec:
+      # pulp/pulp:3.118 is built on CentOS 10 and needs x86-64-v3.
+      # hoard-drake has no AVX2, so the pod cannot start there.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values: [hoard-drake]
       securityContext:
         runAsNonRoot: true
         runAsUser: 700
       enableServiceLinks: false
       initContainers:
       - name: migrate
-        image: pulp/pulp:3.85.32
+        image: pulp/pulp:3.118.5
         imagePullPolicy: IfNotPresent
         command: [bash, -c]
         args:
@@ -56,7 +68,7 @@ spec:
         - name: storage
           mountPath: /var/lib/pulp
       - name: admin-password
-        image: pulp/pulp:3.85.32
+        image: pulp/pulp:3.118.5
         imagePullPolicy: IfNotPresent
         command: [/usr/bin/set_init_password.sh]
         env:
@@ -95,7 +107,7 @@ spec:
           mountPath: /var/lib/pulp
       containers:
       - name: pulp-api
-        image: pulp/pulp:3.85.32
+        image: pulp/pulp:3.118.5
         imagePullPolicy: IfNotPresent
         command: [pulp-api]
         env:
@@ -142,7 +154,7 @@ spec:
         - name: containers
           mountPath: /var/lib/containers
       - name: pulp-content
-        image: pulp/pulp:3.85.32
+        image: pulp/pulp:3.118.5
         imagePullPolicy: IfNotPresent
         command: [pulp-content]
         env:
@@ -190,7 +202,7 @@ spec:
         - name: containers
           mountPath: /var/lib/containers
       - name: pulp-worker
-        image: pulp/pulp:3.85.32
+        image: pulp/pulp:3.118.5
         imagePullPolicy: IfNotPresent
         command: [pulp-worker]
         env:

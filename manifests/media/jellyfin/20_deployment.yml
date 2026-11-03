@@ -19,7 +19,9 @@ spec:
     spec:
       initContainers:
       - name: restore-db
-        image: litestream/litestream:0.5.17
+        # litestream/litestream:0.5.17
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/litestream/litestream@sha256:dff47ab648faddd4b6385e9eeebc1649edd84fb020c576e8b9311cf1dc4a0155
         imagePullPolicy: IfNotPresent
         command: [/bin/sh, /restore/restore.sh]
         env:
@@ -40,7 +42,9 @@ spec:
           readOnly: true
       containers:
       - name: jellyfin
-        image: jellyfin/jellyfin:10.10.5
+                # jellyfin/jellyfin:10.10.5
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/jellyfin/jellyfin@sha256:0ff2f1533e53e7811a04e6cfaf38ce5f467079271e7ed6155bdf36b60423095b
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
@@ -62,7 +66,9 @@ spec:
         - name: db
           mountPath: /db
       - name: litestream
-        image: litestream/litestream:0.5.17
+        # litestream/litestream:0.5.17
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/litestream/litestream@sha256:dff47ab648faddd4b6385e9eeebc1649edd84fb020c576e8b9311cf1dc4a0155
         imagePullPolicy: IfNotPresent
         args: [replicate, -config, /restore/litestream.yml]
         volumeMounts:

@@ -4,11 +4,10 @@
 # https://docs.tuleap.com/installation-guide/docker/docker_compose.html
 # https://docs.tuleap.com/installation-guide/step-by-step/prepare-database.html
 #
-# Upstream tag mysql:8.4.13 is the index digest below (linux/amd64
-# child sha256:2068651a18ac6048578647ea57b940ca2daed3f504ebe7fba6a93beeb39aaa1f).
-# Pulp pull-through answers NAME_UNKNOWN for an anonymous pull. The
-# registry view requires a logged-in user, so kubelet cannot use the
-# Pulp path. This pin is the upstream digest.
+# Upstream tag mysql:8.4.13. The pin is the linux/amd64 manifest,
+# sha256:2068651a18ac6048578647ea57b940ca2daed3f504ebe7fba6a93beeb39aaa1f.
+# An authenticated pull creates the Pulp repository. After that,
+# kubelet pulls the digest with no login.
 #
 # The first NFS init wrote redo files and then InnoDB aborted with
 # "data files are corrupt or the database was not shut down cleanly".
@@ -55,7 +54,9 @@ spec:
         fsGroup: 999
       containers:
       - name: mysql
-        image: docker.io/library/mysql@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+        # mysql:8.4.13 linux/amd64
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/library/mysql@sha256:2068651a18ac6048578647ea57b940ca2daed3f504ebe7fba6a93beeb39aaa1f
         imagePullPolicy: IfNotPresent
         args:
         - --character-set-server=utf8mb4
