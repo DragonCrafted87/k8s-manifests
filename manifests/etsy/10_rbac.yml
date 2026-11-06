@@ -1,0 +1,45 @@
+---
+# The broker account has no Role. The port-forward account can see
+# pods in this namespace and open a port-forward. It is not bound to
+# the workstation client, which is system:admin. This file does not
+# grant cluster-admin.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: etsy-broker
+  namespace: etsy
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: etsy-portforward
+  namespace: etsy
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: etsy-oauth-operator
+  namespace: etsy
+rules:
+- apiGroups: ['']
+  resources: [pods]
+  verbs: [get, list]
+- apiGroups: ['']
+  resources: [pods/portforward]
+  verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: etsy-oauth-operator
+  namespace: etsy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: etsy-oauth-operator
+subjects:
+- kind: ServiceAccount
+  name: etsy-portforward
+  namespace: etsy

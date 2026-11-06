@@ -1,0 +1,92 @@
+# One replica. A restart drops in-memory flows. Handoff files on
+# the NFS mount stay. The private port is not in a Service.
+# Image tag 1.0.0 is published by the docker-images tag
+# etsy-oauth-broker-v1.0.0. Record that digest here before apply.
+# The keystring Secret is created out of band. The shared secret
+# is not mounted.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etsy-oauth-broker
+  namespace: etsy
+  labels:
+    app: etsy-oauth-broker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: etsy-oauth-broker
+  template:
+    metadata:
+      labels:
+        role: etsy-oauth-broker
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      serviceAccountName: etsy-broker
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: etsy-oauth-broker
+        image: ghcr.io/dragoncrafted87/etsy-oauth-broker:1.0.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: '1'
+        - name: ETSY_KEYSTRING_FILE
+          value: /run/secrets/etsy/keystring
+        - name: ETSY_HANDOFF_DIR
+          value: /handoff
+        ports:
+        - name: callback
+          containerPort: 8080
+          protocol: TCP
+        - name: operator
+          containerPort: 8091
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: callback
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: callback
+          periodSeconds: 30
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        volumeMounts:
+        - name: handoff
+          mountPath: /handoff
+        - name: keystring
+          mountPath: /run/secrets/etsy
+          readOnly: true
+      volumes:
+      - name: handoff
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/etsy-oauth
+      - name: keystring
+        secret:
+          secretName: etsy-keystring
+          defaultMode: 0444
+          items:
+          - key: keystring
+            path: keystring
