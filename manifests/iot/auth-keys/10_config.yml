@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-keys
+  namespace: iot
+data:
+  authorized_keys: |
+    # auth-keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-keys-push
+  namespace: iot
+data:
+  push-list: |
+    besom-wyvern.stealthdragonland.net root /oem/authorized_keys
+  known_hosts: |
+    besom-wyvern.stealthdragonland.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOm1aAe8aQjAKMghKEDVKju4vjLYUqXYtir7zM9kMesx

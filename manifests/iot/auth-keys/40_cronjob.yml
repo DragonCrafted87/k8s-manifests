@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: auth-keys
+  namespace: iot
+  labels:
+    app.kubernetes.io/name: auth-keys
+spec:
+  schedule: 17 */12 * * *
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          serviceAccountName: auth-keys
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: roost-drake
+          containers:
+          - name: auth-keys
+            # ghcr.io/dragoncrafted87/alpine-auth-keys:edge
+            # yamllint disable-line rule:line-length
+            image: ghcr.io/dragoncrafted87/alpine-auth-keys:edge
+            imagePullPolicy: IfNotPresent
+            args: [run]
+            env:
+            - name: TZ
+              value: America/Chicago
+            - name: AUTH_KEYS_SINK
+              value: configmap
+            - name: AUTH_KEYS_FILE
+              value: /tmp/authorized_keys
+            - name: KEYS_URL
+              value: https://github.com/DragonCrafted87.keys
+            - name: AUTH_KEYS_IDENTITY
+              value: /etc/auth-keys-identity/id_ed25519
+            volumeMounts:
+            - name: push
+              mountPath: /etc/auth-keys
+            - name: identity
+              mountPath: /etc/auth-keys-identity
+              readOnly: true
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
+          volumes:
+          - name: push
+            configMap:
+              name: auth-keys-push
+          - name: identity
+            secret:
+              secretName: auth-keys-push
+              defaultMode: 256
+              items:
+              - key: id_ed25519
+                path: id_ed25519
