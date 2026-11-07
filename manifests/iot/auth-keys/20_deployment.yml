@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-keys
+  namespace: iot
+  labels:
+    app.kubernetes.io/name: auth-keys
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: auth-keys
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: auth-keys
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/hostname: roost-drake
+      containers:
+      - name: auth-keys
+        # ghcr.io/dragoncrafted87/alpine-auth-keys:edge
+        # yamllint disable-line rule:line-length
+        image: ghcr.io/dragoncrafted87/alpine-auth-keys:edge
+        imagePullPolicy: IfNotPresent
+        command: [/usr/local/bin/auth-keys-serve.sh]
+        ports:
+        - name: http
+          containerPort: 8080
+        volumeMounts:
+        - name: keys
+          mountPath: /www
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 32Mi
+      volumes:
+      - name: keys
+        configMap:
+          name: auth-keys
