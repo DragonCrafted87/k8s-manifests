@@ -17,7 +17,9 @@ spec:
     spec:
       containers:
       - name: kimai
-        image: kimai/kimai2:apache-2.17.0-prod
+                # kimai/kimai2:apache-2.17.0-prod
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/kimai/kimai2@sha256:b808ba1d5504e6fa3bf7a0109f3480ee4ac77360a0b7e25b9dfd677964313ad0
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
@@ -37,7 +39,9 @@ spec:
           name: kimai
           protocol: TCP
       - name: mysql
-        image: mysql:5.7.44
+                # mysql:5.7.44
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/library/mysql@sha256:dab0a802b44617303694fb17d166501de279c3031ddeb28c56ecf7fcab5ef0da
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ

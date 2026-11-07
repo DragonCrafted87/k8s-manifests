@@ -22,7 +22,9 @@ spec:
         runAsUser: 1000
       initContainers:
       - name: restore-db
-        image: litestream/litestream:0.5.17
+        # litestream/litestream:0.5.17
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/litestream/litestream@sha256:dff47ab648faddd4b6385e9eeebc1649edd84fb020c576e8b9311cf1dc4a0155
         imagePullPolicy: IfNotPresent
         command: [/bin/sh, /restore/restore.sh]
         env:
@@ -41,7 +43,9 @@ spec:
           readOnly: true
       containers:
       - name: vikunja
-        image: vikunja/vikunja:2.7.0
+                # vikunja/vikunja:2.7.0
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/vikunja/vikunja@sha256:3c4b1d34d99256f7cad14b4508e97d80de53e1f5859745c3c176d10c62c73fbf
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
@@ -77,7 +81,9 @@ spec:
         - name: files
           mountPath: /app/vikunja/files
       - name: litestream
-        image: litestream/litestream:0.5.17
+        # litestream/litestream:0.5.17
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/litestream/litestream@sha256:dff47ab648faddd4b6385e9eeebc1649edd84fb020c576e8b9311cf1dc4a0155
         imagePullPolicy: IfNotPresent
         args: [replicate, -config, /restore/litestream.yml]
         volumeMounts:

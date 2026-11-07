@@ -19,7 +19,9 @@ spec:
     spec:
       initContainers:
       - name: restore-db
-        image: litestream/litestream:0.5.17
+        # litestream/litestream:0.5.17
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/litestream/litestream@sha256:dff47ab648faddd4b6385e9eeebc1649edd84fb020c576e8b9311cf1dc4a0155
         imagePullPolicy: IfNotPresent
         command: [/bin/sh, /restore/restore.sh]
         env:
@@ -38,7 +40,9 @@ spec:
           readOnly: true
       containers:
       - name: kitchenowl
-        image: tombursch/kitchenowl:v0.7.10
+                # tombursch/kitchenowl:v0.7.10
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/tombursch/kitchenowl@sha256:23e2fcb761350992af2566ebf6e565ae6dd0148f87c652ae30abcc441f2ea202
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
@@ -74,7 +78,9 @@ spec:
         - name: upload
           mountPath: /data/upload
       - name: litestream
-        image: litestream/litestream:0.5.17
+        # litestream/litestream:0.5.17
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/litestream/litestream@sha256:dff47ab648faddd4b6385e9eeebc1649edd84fb020c576e8b9311cf1dc4a0155
         imagePullPolicy: IfNotPresent
         args: [replicate, -config, /restore/litestream.yml]
         volumeMounts:

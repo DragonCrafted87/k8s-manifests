@@ -17,7 +17,9 @@ spec:
     spec:
       containers:
       - name: mqtt
-        image: eclipse-mosquitto:2.0.18-openssl
+                # eclipse-mosquitto:2.0.18-openssl
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/docker.io/library/eclipse-mosquitto@sha256:c3db24f40dc7c60f861e71760a784122817ed305cd2d1a129d9da61df043579c
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ

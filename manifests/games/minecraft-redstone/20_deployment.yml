@@ -34,7 +34,9 @@ spec:
           value: '1'
       containers:
       - name: minecraft-redstone
-        image: ghcr.io/dragoncrafted87/alpine-minecraft:2.1.0
+                # ghcr.io/dragoncrafted87/alpine-minecraft:2.1.0
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/alpine-minecraft@sha256:809b211e6964c938f34300c1df70f8ed8c1129b21f0312b869f1b4e50f9a6809
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ

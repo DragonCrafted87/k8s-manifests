@@ -36,7 +36,9 @@ spec:
           value: '1'
       containers:
       - name: foundry
-        image: ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner:2.1.1
+                # ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner:2.1.1
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/alpine-foundry-vtt-runner@sha256:37730aece3e4da000b63b0a1468837bc4b6db0a6c1dd9327caf3e531439bfe54
         imagePullPolicy: IfNotPresent
         env:
         - name: TZ
