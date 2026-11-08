@@ -1,0 +1,180 @@
+# yamllint disable rule:indentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddy-configuration
+  namespace: infrastructure
+data:
+  Caddyfile: |
+    {
+      log {
+        output stderr
+        level INFO
+        format filter {
+          wrap console
+          fields {
+            request>uri query {
+              delete code
+              delete state
+              delete error
+              delete error_description
+              delete error_uri
+            }
+          }
+        }
+      }
+    }
+
+    stealthdragonland.net {
+    }
+
+    dragoncrafted87.dev {
+    }
+
+    foundry.stealthdragonland.net {
+      reverse_proxy 192.168.8.40
+    }
+    media.stealthdragonland.net {
+      reverse_proxy 192.168.8.30:80
+    }
+    prayers.stealthdragonland.net {
+      redir / /en/ 301
+      reverse_proxy 192.168.8.31:80
+    }
+    time.stealthdragonland.net {
+      reverse_proxy 192.168.8.50:80
+    }
+    kitchen.stealthdragonland.net {
+      reverse_proxy 192.168.8.51:80
+    }
+    tasks.stealthdragonland.net {
+      reverse_proxy 192.168.8.52:80
+    }
+    # MemPalace speaks plain HTTP. Caddy terminates TLS.
+    # The bearer token is the access check.
+    mempalace-snikt.stealthdragonland.net {
+      reverse_proxy http://mempalace-snikt.agents.svc.cluster.local:8765
+    }
+    weatherhub.stealthdragonland.net {
+      reverse_proxy 192.168.0.102:80
+    }
+    vscode-md.stealthdragonland.net {
+      root * /srv/vscode-md
+      file_server
+      header Cache-Control "public, max-age=300"
+    }
+    pulp.stealthdragonland.net {
+      route {
+        @pulp_ui path /ui /ui/* /static/pulp_ui/* /pulp-ui-config.json
+        handle @pulp_ui {
+          reverse_proxy pulp-ui:8080
+        }
+        @pulp_root path /
+        handle @pulp_root {
+          redir * /ui/ 308
+        }
+        handle /v2/* {
+          reverse_proxy 192.168.8.53:24817
+        }
+        handle /token/* {
+          reverse_proxy 192.168.8.53:24817
+        }
+        handle /extensions/v2/* {
+          reverse_proxy 192.168.8.53:24817
+        }
+        handle /pulp/content* {
+          reverse_proxy 192.168.8.53:24816
+        }
+        handle /pulp/container* {
+          reverse_proxy 192.168.8.53:24816
+        }
+        handle {
+          reverse_proxy 192.168.8.53:24817
+        }
+      }
+    }
+    # Agents are ClusterIP only. 192.168.0.1 is mist-dragon, the source
+    # of vpn-relay, so a public request is refused. The rest of the
+    # house LAN is allowed. 10.42.0.0/16 is the pod network: a node that
+    # opens the Caddy VIP is rewritten to its flannel address.
+    hermes.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
+      handle @lan {
+        reverse_proxy hermes.agents.svc.cluster.local:9119
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }
+    hermes-api.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
+      handle @lan {
+        reverse_proxy hermes.agents.svc.cluster.local:8642
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }
+    opencode.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
+      handle @lan {
+        reverse_proxy opencode.agents.svc.cluster.local:4096
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }
+    # Forgeledger speaks plain HTTP. Caddy owns the certificate.
+    # The session cookie is Secure, so the name stays HTTPS.
+    # The login-form CSRF fix is still open, so this name stays
+    # on the LAN. 192.168.0.1 is the vpn-relay source.
+    forgeledger.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
+      handle @lan {
+        reverse_proxy http://forgeledger.productivity.svc.cluster.local:8080 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto https
+          header_up X-Real-IP {remote_host}
+        }
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }
+    # The callback query carries the authorization code. Caddy 2.7.6
+    # puts request.uri on the error log. The global filter above
+    # deletes code, state, and the error parameters. This host has
+    # no access log. Unknown paths are 404.
+    etsy.stealthdragonland.net {
+      header {
+        Cache-Control no-store
+        Referrer-Policy no-referrer
+      }
+      handle /oauth/callback {
+        reverse_proxy http://etsy-oauth-broker.etsy.svc.cluster.local:8080
+      }
+      handle {
+        respond "Not Found" 404
+      }
+      handle_errors {
+        header Cache-Control no-store
+        header Referrer-Policy no-referrer
+        respond "unavailable" 502
+      }
+    }

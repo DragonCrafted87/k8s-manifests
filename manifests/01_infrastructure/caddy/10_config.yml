@@ -6,25 +6,6 @@ metadata:
   namespace: infrastructure
 data:
   Caddyfile: |
-    {
-      log {
-        output stderr
-        level INFO
-        format filter {
-          wrap console
-          fields {
-            request>uri query {
-              delete code
-              delete state
-              delete error
-              delete error_description
-              delete error_uri
-            }
-          }
-        }
-      }
-    }
-
     stealthdragonland.net {
     }
 
@@ -136,28 +117,6 @@ data:
         respond "Forbidden" 403
       }
     }
-    # Tuleap speaks HTTPS on 443 with its own certificate. Caddy owns
-    # the public name. 192.168.0.1 is the vpn-relay source.
-    tuleap.stealthdragonland.net {
-      @relay remote_ip 192.168.0.1/32
-      handle @relay {
-        respond "Forbidden" 403
-      }
-      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
-      handle @lan {
-        reverse_proxy https://tuleap.tuleap.svc.cluster.local:443 {
-          header_up Host {host}
-          header_up X-Forwarded-Proto https
-          header_up X-Real-IP {remote_host}
-          transport http {
-            tls_insecure_skip_verify
-          }
-        }
-      }
-      handle {
-        respond "Forbidden" 403
-      }
-    }
     # Forgeledger speaks plain HTTP. Caddy owns the certificate.
     # The session cookie is Secure, so the name stays HTTPS.
     # The login-form CSRF fix is still open, so this name stays
@@ -177,26 +136,5 @@ data:
       }
       handle {
         respond "Forbidden" 403
-      }
-    }
-    # The callback query carries the authorization code. Caddy 2.7.6
-    # puts request.uri on the error log. The global filter above
-    # deletes code, state, and the error parameters. This host has
-    # no access log. Unknown paths are 404.
-    etsy.stealthdragonland.net {
-      header {
-        Cache-Control no-store
-        Referrer-Policy no-referrer
-      }
-      handle /oauth/callback {
-        reverse_proxy http://etsy-oauth-broker.etsy.svc.cluster.local:8080
-      }
-      handle {
-        respond "Not Found" 404
-      }
-      handle_errors {
-        header Cache-Control no-store
-        header Referrer-Policy no-referrer
-        respond "unavailable" 502
       }
     }

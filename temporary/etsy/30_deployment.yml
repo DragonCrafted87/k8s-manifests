@@ -35,7 +35,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: etsy-oauth-broker
-        image: ghcr.io/dragoncrafted87/etsy-oauth-broker:1.0.0
+        image: pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/etsy-oauth-broker:1.0.1
         imagePullPolicy: IfNotPresent
         securityContext:
           readOnlyRootFilesystem: true
@@ -96,7 +96,6 @@ spec:
           - serviceAccountToken:
               path: token
               expirationSeconds: 3600
-              audience: https://kubernetes.default.svc
           - configMap:
               name: kube-root-ca.crt
               items:
