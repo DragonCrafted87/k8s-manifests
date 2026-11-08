@@ -1,7 +1,8 @@
-# One replica. A restart drops in-memory flows. The refresh-token
-# Secret stays until Scott deletes it. The private port is not in
-# a Service. Image tag 1.0.0 is published by the docker-images tag
-# etsy-oauth-broker-v1.0.0. Record that digest here before apply.
+# One replica. A restart drops in-memory flows. The token Secrets
+# stay. The private port is not in a Service. Image tag 1.1.0 is
+# published by the docker-images tag etsy-oauth-broker-v1.1.0.
+# Record that digest here before apply. The image is pulled
+# through Pulp.
 # The keystring Secret is created out of band. The shared secret
 # is not mounted. The API token is a projected token, mode 0444,
 # because the container uid is 1000 and this pod sets no fsGroup.
@@ -35,7 +36,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: etsy-oauth-broker
-        image: ghcr.io/dragoncrafted87/etsy-oauth-broker:1.0.0
+        image: pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/etsy-oauth-broker:1.1.0
         imagePullPolicy: IfNotPresent
         securityContext:
           readOnlyRootFilesystem: true
@@ -51,6 +52,8 @@ spec:
           value: etsy
         - name: ETSY_REFRESH_SECRET
           value: etsy-refresh-token
+        - name: ETSY_ACCESS_SECRET
+          value: etsy-access-token
         - name: KUBERNETES_API
           value: https://kubernetes.default.svc
         - name: KUBERNETES_TOKEN_FILE

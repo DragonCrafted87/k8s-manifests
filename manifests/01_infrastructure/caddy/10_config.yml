@@ -19,6 +19,7 @@ data:
               delete error
               delete error_description
               delete error_uri
+              delete iss
             }
           }
         }
