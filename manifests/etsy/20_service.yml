@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: etsy-oauth-broker
+  namespace: etsy
+  labels:
+    app: etsy-oauth-broker
+spec:
+  type: ClusterIP
+  selector:
+    role: etsy-oauth-broker
+  ports:
+  - name: callback
+    port: 8080
+    targetPort: callback
+    protocol: TCP

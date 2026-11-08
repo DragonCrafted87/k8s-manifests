@@ -6,6 +6,25 @@ metadata:
   namespace: infrastructure
 data:
   Caddyfile: |
+    {
+      log {
+        output stderr
+        level INFO
+        format filter {
+          wrap console
+          fields {
+            request>uri query {
+              delete code
+              delete state
+              delete error
+              delete error_description
+              delete error_uri
+            }
+          }
+        }
+      }
+    }
+
     stealthdragonland.net {
     }
 
@@ -158,5 +177,26 @@ data:
       }
       handle {
         respond "Forbidden" 403
+      }
+    }
+    # The callback query carries the authorization code. Caddy 2.7.6
+    # puts request.uri on the error log. The global filter above
+    # deletes code, state, and the error parameters. This host has
+    # no access log. Unknown paths are 404.
+    etsy.stealthdragonland.net {
+      header {
+        Cache-Control no-store
+        Referrer-Policy no-referrer
+      }
+      handle /oauth/callback {
+        reverse_proxy http://etsy-oauth-broker.etsy.svc.cluster.local:8080
+      }
+      handle {
+        respond "Not Found" 404
+      }
+      handle_errors {
+        header Cache-Control no-store
+        header Referrer-Policy no-referrer
+        respond "unavailable" 502
       }
     }

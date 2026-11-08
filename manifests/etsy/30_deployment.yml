@@ -1,0 +1,111 @@
+# One replica. A restart drops in-memory flows. The refresh-token
+# Secret stays until Scott deletes it. The private port is not in
+# a Service. Image tag 1.0.0 is published by the docker-images tag
+# etsy-oauth-broker-v1.0.0. Record that digest here before apply.
+# The keystring Secret is created out of band. The shared secret
+# is not mounted. The API token is a projected token, mode 0444,
+# because the container uid is 1000 and this pod sets no fsGroup.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etsy-oauth-broker
+  namespace: etsy
+  labels:
+    app: etsy-oauth-broker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      role: etsy-oauth-broker
+  template:
+    metadata:
+      labels:
+        role: etsy-oauth-broker
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      serviceAccountName: etsy-broker
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: etsy-oauth-broker
+        image: ghcr.io/dragoncrafted87/etsy-oauth-broker:1.0.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: '1'
+        - name: ETSY_KEYSTRING_FILE
+          value: /run/secrets/etsy/keystring
+        - name: ETSY_NAMESPACE
+          value: etsy
+        - name: ETSY_REFRESH_SECRET
+          value: etsy-refresh-token
+        - name: KUBERNETES_API
+          value: https://kubernetes.default.svc
+        - name: KUBERNETES_TOKEN_FILE
+          value: /var/run/secrets/kubernetes.io/serviceaccount/token
+        - name: KUBERNETES_CA_FILE
+          value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        ports:
+        - name: callback
+          containerPort: 8080
+          protocol: TCP
+        - name: operator
+          containerPort: 8091
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: callback
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: callback
+          periodSeconds: 30
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        volumeMounts:
+        - name: apiserver
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          readOnly: true
+        - name: keystring
+          mountPath: /run/secrets/etsy
+          readOnly: true
+      volumes:
+      - name: apiserver
+        projected:
+          defaultMode: 0444
+          sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3600
+              audience: https://kubernetes.default.svc
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+              - key: ca.crt
+                path: ca.crt
+      - name: keystring
+        secret:
+          secretName: etsy-keystring
+          defaultMode: 0444
+          items:
+          - key: keystring
+            path: keystring
