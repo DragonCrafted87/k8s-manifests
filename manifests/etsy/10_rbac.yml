@@ -44,10 +44,10 @@ subjects:
   name: etsy-portforward
   namespace: etsy
 ---
-# create cannot be limited by resourceNames. The process POSTs only
-# etsy-refresh-token. It cannot update, patch, delete, or list
-# Secrets. get is limited to that one name, so the API token cannot
-# read etsy-keystring.
+# create cannot be limited by resourceNames. The process writes
+# etsy-refresh-token and etsy-access-token. It cannot list or
+# delete Secrets, and it cannot get etsy-keystring or the reader
+# token. The reader account can get only etsy-access-token.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -59,8 +59,8 @@ rules:
   verbs: [create]
 - apiGroups: ['']
   resources: [secrets]
-  resourceNames: [etsy-refresh-token]
-  verbs: [get]
+  resourceNames: [etsy-refresh-token, etsy-access-token]
+  verbs: [get, update, patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -75,3 +75,47 @@ subjects:
 - kind: ServiceAccount
   name: etsy-broker
   namespace: etsy
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: etsy-token-reader
+  namespace: etsy
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: etsy-access-reader
+  namespace: etsy
+rules:
+- apiGroups: ['']
+  resources: [secrets]
+  resourceNames: [etsy-access-token]
+  verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: etsy-access-reader
+  namespace: etsy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: etsy-access-reader
+subjects:
+- kind: ServiceAccount
+  name: etsy-token-reader
+  namespace: etsy
+---
+# The controller fills this token. It is not in git. Scott copies
+# it into a kubeconfig in Proton Pass for the bot. Assistants do
+# not get this Secret.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: etsy-token-reader
+  namespace: etsy
+  annotations:
+    kubernetes.io/service-account.name: etsy-token-reader
+type: kubernetes.io/service-account-token
