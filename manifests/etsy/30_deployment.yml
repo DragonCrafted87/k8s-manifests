@@ -96,10 +96,10 @@ spec:
         projected:
           defaultMode: 0444
           sources:
-          # Leave the audience unset. This API server accepts its
-          # default, https://kubernetes.default.svc.cluster.local.
-          # https://kubernetes.default.svc is rejected with 401, and
-          # /readyz stays 503.
+              # Leave the audience unset. This API server accepts its
+              # default, https://kubernetes.default.svc.cluster.local.
+              # https://kubernetes.default.svc is rejected with 401, and
+              # /readyz stays 503.
           - serviceAccountToken:
               path: token
               expirationSeconds: 3600
