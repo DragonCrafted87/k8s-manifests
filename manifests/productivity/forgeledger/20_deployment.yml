@@ -1,8 +1,11 @@
 # Image is linux/amd64 only and is published only to the in-cluster
-# Pulp registry. The tag is dev, so pull every start.
+# Pulp registry. This pod is pinned to the digest that was live as
+# commit cbf9c5d. Password sign-in stays. The OIDC client secret is
+# Secret forgeledger-oidc key client-secret. It is not in git.
 # Sign-in needs HTTPS. Caddy terminates TLS for
 # forgeledger.stealthdragonland.net. The session cookie is Secure.
 # The login-form CSRF fix is still open, so that name stays on the LAN.
+# forward_auth and FL_PUBLIC_HOST stay unset until that fix.
 # Admin password is the existing Secret forgeledger-admin, key
 # password. It is not in git.
 #
@@ -63,8 +66,9 @@ spec:
           readOnly: true
       containers:
       - name: forgeledger
-        image: pulp.stealthdragonland.net/forgeledger:dev
-        imagePullPolicy: Always
+        # yamllint disable-line rule:line-length
+        image: pulp.stealthdragonland.net/forgeledger@sha256:c1c3efef056b70a8fedab76ec52cf4be05bbd75c3e3e81fd51b37e1c999d7536
+        imagePullPolicy: IfNotPresent
         ports:
         - name: http
           containerPort: 8080
@@ -76,6 +80,15 @@ spec:
           value: America/Chicago
         - name: FL_ADMIN_PASSWORD_FILE
           value: /run/secrets/fl/password
+        - name: FL_OIDC_ISSUER
+          value: https://auth.stealthdragonland.net/application/o/forgeledger/
+        - name: FL_OIDC_CLIENT_ID
+          value: forgeledger
+        - name: FL_OIDC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: forgeledger-oidc
+              key: client-secret
         securityContext:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false

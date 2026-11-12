@@ -1,0 +1,73 @@
+# yamllint disable rule:line-length
+# yamllint disable rule:indentation
+# Applied by the worker from /blueprints. The client secret is
+# FL_OIDC_CLIENT_SECRET on that process, from Secret authentik-secret.
+# Forgeledger creates no account from this login. It links the one
+# active human whose email equals a verified email claim. The stock
+# Authentik email scope always sends email_verified false, so this
+# provider uses its own scope and sends true only when the user
+# attribute email_verified is true. akadmin gets that attribute here.
+# No enrollment flow is added.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: infrastructure
+  name: authentik-blueprint
+data:
+  forgeledger.yaml: |
+    version: 1
+    metadata:
+      name: forgeledger
+      labels:
+        blueprints.goauthentik.io/instantiate: "true"
+    entries:
+    - model: authentik_providers_oauth2.scopemapping
+      id: forgeledger-email
+      identifiers:
+        name: Forgeledger email
+      attrs:
+        name: Forgeledger email
+        scope_name: email
+        description: Verified email for Forgeledger account linking
+        expression: |
+          email = (request.user.email or "").strip()
+          verified = bool(email) and request.user.attributes.get("email_verified") is True
+          return {"email": email, "email_verified": verified}
+    - model: authentik_providers_oauth2.oauth2provider
+      id: forgeledger
+      identifiers:
+        name: Forgeledger
+      attrs:
+        name: Forgeledger
+        authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+        invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+        client_type: confidential
+        client_id: forgeledger
+        client_secret: !Env FL_OIDC_CLIENT_SECRET
+        redirect_uris:
+        - matching_mode: strict
+          url: https://forgeledger.stealthdragonland.net/login/oidc/callback
+        include_claims_in_id_token: true
+        issuer_mode: per_provider
+        sub_mode: hashed_user_id
+        signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+        property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+        - !KeyOf forgeledger-email
+    - model: authentik_core.application
+      id: forgeledger-app
+      identifiers:
+        slug: forgeledger
+      attrs:
+        name: Forgeledger
+        slug: forgeledger
+        provider: !KeyOf forgeledger
+        meta_launch_url: https://forgeledger.stealthdragonland.net
+        policy_engine_mode: any
+    - model: authentik_core.user
+      identifiers:
+        username: akadmin
+      attrs:
+        attributes:
+          email_verified: true

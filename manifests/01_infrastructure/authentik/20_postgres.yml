@@ -1,0 +1,65 @@
+# Password is Secret authentik-database key password. It is not in git.
+# The directory /srv/data/authentik/postgres is uid 999 mode 700.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: infrastructure
+  name: authentik-postgres
+  labels:
+    app: authentik-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: authentik-postgres
+  template:
+    metadata:
+      labels:
+        role: authentik-postgres
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      containers:
+      - name: postgres
+        # docker.io/library/postgres:16.15
+        # yamllint disable-line rule:line-length
+        image: docker.io/library/postgres@sha256:43f9275df91e012c3da3d86bea5d7bb5e67a473296cc906c5f9e80b8176b1a37
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_USER
+          value: authentik
+        - name: POSTGRES_DB
+          value: authentik
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authentik-database
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - name: postgres
+          containerPort: 5432
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command: [pg_isready, -U, authentik, -d, authentik]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: data
+        nfs:
+          server: hoard-drake.stealthdragonland.net
+          path: /srv/data/authentik/postgres
