@@ -4,7 +4,7 @@
 
 The broker keeps a shop consent for the Be Boldly Catholic Seller App. Caddy exposes `https://etsy.stealthdragonland.net/oauth/callback`. The pod stores the access token in Secret `etsy-access-token` and the refresh token in Secret `etsy-refresh-token`. It refreshes the access token before expiry and saves the rotated refresh token. Scott puts the `etsy-token-reader` kubeconfig in Proton Pass. The bot uses that account to read the access token. No assistant reads either Etsy token or the reader token.
 
-`listings_w` can create and edit listings, including publication. `shops_w` can update the shop description, messages, and sections. Those are the scopes on the consent. The broker does not call the listing or shop endpoints. A later shop write is a separate approval.
+`listings_w` can create and edit listings, including publication. `shops_w` can update the shop description, messages, and sections. `transactions_r` reads purchase and sales data. `feedback_r` reads feedback, including purchase history. `billing_r` reads billing statements. Those are the scopes on the consent. The broker does not call those endpoints. A later shop write is a separate approval. A token from the older four scopes fails refresh until the shop consents again.
 
 `etsy-access-token` has one data key, `access-token`. `etsy-refresh-token` has one data key, `refresh-token`. Both carry `etsy.stealthdragonland.net/expires-at`. The reader account can get only `etsy-access-token`. The broker account can get and update those two names. It cannot list or delete Secrets, and it cannot get the keystring or the reader token. `create` cannot be limited to one object name. The port-forward account cannot get Secrets. An assistant does not print a token, pass it on a command line, or put it in a log, a ticket, or this repository.
 
@@ -24,7 +24,7 @@ A restart drops pending flows and leaves both token Secrets. The process refresh
 
 ## Before apply
 
-1. Merge and publish `pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/etsy-oauth-broker:1.1.0` from the docker-images tag `etsy-oauth-broker-v1.1.0`. Put that digest on the Deployment before apply. The Deployment already names the Pulp mirror.
+1. Merge and publish `pulp.stealthdragonland.net/ghcr.io/dragoncrafted87/etsy-oauth-broker:1.1.1` from the docker-images tag `etsy-oauth-broker-v1.1.1`. Put that digest on the Deployment before apply. The Deployment already names the Pulp mirror. Consent again after that image is running. The token from the four-scope grant fails refresh.
 1. Create the keystring Secret from a shell that does not echo. Do not pass the value as an argument. Do not save a manifest of it. The shared secret stays out. Do not create `etsy-refresh-token` by hand. The broker creates it at the end of consent.
 
 ```bash
@@ -48,7 +48,7 @@ kubectl -n etsy port-forward deploy/etsy-oauth-broker 8091:8091
 curl --silent --show-error -X POST http://127.0.0.1:8091/flows
 ```
 
-`kubectl port-forward` dials `127.0.0.1` inside the pod network namespace. Confirm the private `curl` works, and confirm `https://etsy.stealthdragonland.net:8091/flows` does not. Open the returned URL, signed in as the shop, and approve the four scopes. The browser should show `ok`. `GET /status` on the forwarded port reports `last_export` of `completed` and token sizes and `expires_at`. It does not return a token.
+`kubectl port-forward` dials `127.0.0.1` inside the pod network namespace. Confirm the private `curl` works, and confirm `https://etsy.stealthdragonland.net:8091/flows` does not. Open the returned URL, signed in as the shop, and approve the seven scopes. The browser should show `ok`. `GET /status` on the forwarded port reports `last_export` of `completed` and token sizes and `expires_at`. It does not return a token.
 
 Copy the reader credential into Proton Pass from a keyboard. This prints the ServiceAccount token, not the Etsy token. Do not send that output to an assistant. The bot kubeconfig uses that token, the cluster CA, and the API address. The account can get only `etsy-access-token`.
 
