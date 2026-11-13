@@ -1,0 +1,30 @@
+---
+# Authentik is ClusterIP. Caddy owns TLS and the LAN limit for
+# auth.stealthdragonland.net. There is no LoadBalancer.
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: infrastructure
+  name: authentik-postgres
+spec:
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+    protocol: TCP
+  selector:
+    role: authentik-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: infrastructure
+  name: authentik
+spec:
+  ports:
+  - name: http
+    port: 9000
+    targetPort: http
+    protocol: TCP
+  selector:
+    role: authentik

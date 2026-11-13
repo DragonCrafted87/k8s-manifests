@@ -158,6 +158,28 @@ data:
         respond "Forbidden" 403
       }
     }
+    # Authentik is plain HTTP. Caddy owns the certificate.
+    # The same LAN limit as Forgeledger. 192.168.0.1 is the
+    # vpn-relay source. X-Forwarded-Proto stays https so the
+    # issuer authentik puts on an ID token is https.
+    auth.stealthdragonland.net {
+      @relay remote_ip 192.168.0.1/32
+      handle @relay {
+        respond "Forbidden" 403
+      }
+      @lan remote_ip 192.168.0.0/16 10.42.0.0/16
+      handle @lan {
+        reverse_proxy http://authentik.infrastructure.svc.cluster.local:9000 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto https
+          header_up X-Forwarded-Host {host}
+          header_up X-Real-IP {remote_host}
+        }
+      }
+      handle {
+        respond "Forbidden" 403
+      }
+    }
     # The callback query carries the authorization code. Caddy 2.7.6
     # puts request.uri on the error log. The global filter above
     # deletes code, state, and the error parameters. This host has
